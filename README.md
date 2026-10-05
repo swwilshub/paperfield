@@ -113,7 +113,7 @@ One-time setup: **Settings → Pages → Build and deployment → Source: GitHub
 ```
 index.html              markup; loads styles/main.css and src/main.js
 src/core/               physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
-src/ui/                 state.js (shared state), tabs, fold, wings, paper (colour picker), shapes (plane outlines), release, board
+src/ui/                 state.js (shared state), tabs (app shell: modes, sheets, bottom dock), fold, wings, paper (colour picker), shapes (plane outlines), release, board
 src/world/              scene.js (renderer, camera, loop), planes.js (meshes, picking), event.js (throw replay)
 src/audio/              music.js (API, sound effects), mixer.js (stem player), sequencer.js (generative arrangement)
 assets/music/           phrase files + manifest.json (generated; see Music)

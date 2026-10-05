@@ -14,91 +14,86 @@
 </script>
 <script type="module" src="src/main.js"></script>
 </head>
-<body>
-<main>
- <div class="top">
-  <div><h1>One Sheet</h1><p class="sub" style="margin:0">Fold an A4 plane. Pick your paper. Let it go. Every plane ever thrown stays where it landed.</p></div>
-  <div class="chip" id="me">Connecting…</div>
+<body data-mode="field">
+<div id="worldWrap">
+ <canvas id="world" aria-label="3D field of every plane thrown so far. Drag to look around, pinch or scroll to zoom, tap a plane to inspect it."></canvas>
+ <header class="hud"><div class="hudl"><div class="brand">One Sheet</div><div class="ticker" id="ticker">Loading the field…</div></div><div class="chip" id="me">Connecting…</div></header>
+ <div id="eventInfo"></div><div id="callout" aria-live="polite"></div><button class="btn dockbtn" id="skip" type="button" hidden>Skip</button>
+ <div id="toast" hidden></div><div id="reveal" hidden role="dialog" aria-label="Flight results"></div>
+ <div id="empty" hidden>No planes yet. Be the first to fold one.</div>
+ <div id="card" role="dialog" aria-live="polite"></div>
+ <div id="flightHud" aria-live="off"></div>
+</div>
+
+<!-- The plane designer: a sheet above the dock. Its content is per step; its actions live in the dock. -->
+<section id="designer" class="sheetpanel" hidden aria-label="Build your plane">
+ <ol class="steps" aria-label="Steps"><li data-stepdot="fold">Fold</li><li data-stepdot="wings">Wings</li><li data-stepdot="go">Release</li></ol>
+ <div class="step" data-step="fold">
+  <svg id="foldSvg" aria-label="Your sheet. Drag across it to draw a crease. The nose is at the top."></svg>
+  <div class="hint" id="foldHint">Drag a line across the paper to crease it. Folds are mirrored on the other side. Try folding the top corners to the centre.</div>
+  <div class="steprow"><div id="orientBox" class="seg" role="group" aria-label="Sheet"><button type="button" data-or="portrait" aria-pressed="true">Portrait</button><button type="button" data-or="landscape" aria-pressed="false">Landscape</button></div><span class="sub num" id="foldCount"></span><button class="linkbtn" id="restart" type="button">Start again</button></div>
  </div>
-
- <div id="worldWrap">
-  <canvas id="world" aria-label="3D field of every plane thrown so far. Drag to look around, pinch or scroll to zoom, tap a plane to inspect it."></canvas>
-  <div class="hud"><div class="ticker" id="ticker">Loading the field…</div><div class="hudr"><button class="hudbtn" id="home" type="button">Recentre</button></div></div>
-  <div id="eventInfo"></div><div id="callout" aria-live="polite"></div><button class="hudbtn" id="skip" type="button" hidden>Skip</button>
-  <div id="toast" hidden></div><div id="reveal" hidden role="dialog" aria-label="Flight results"></div>
-  <div id="empty" hidden>No planes yet. Be the first to fold one.</div>
-  <div id="card" role="dialog" aria-live="polite"></div>
-  <div id="flightHud" aria-live="off"></div>
+ <div class="step" data-step="wings" hidden>
+  <svg id="wingSvg" aria-label="Half of your folded plane with the wing fold line"></svg>
+  <p class="hint">Right of the dashed line hangs down as the keel; left of it is wing.</p>
+  <label for="hN">Keel depth at the nose <output id="hNo" class="num"></output></label><input id="hN" type="range" min="3" max="105" step="1" value="15">
+  <label for="hT">Keel depth at the tail <output id="hTo" class="num"></output></label><input id="hT" type="range" min="3" max="105" step="1" value="25">
+  <label>Balance</label><div class="meter"><i id="balI"></i></div><div class="meterlab"><span>tail-heavy, tumbles</span><span>nose-heavy, dives</span></div>
+  <dl class="spec" id="wingSpec"></dl>
  </div>
+ <div class="step" data-step="go" hidden>
+  <h3 id="goTitle">Ready to throw</h3>
+  <label id="paperL">Paper colour</label><div class="pal papers" id="papers" role="group" aria-labelledby="paperL"></div>
+  <p class="hint" id="goHint"></p>
+  <p class="sub small">The same thrower throws every plane three times with small random wobbles. Your best throw counts.</p>
+  <div id="result"></div>
+ </div>
+</section>
 
- <section aria-labelledby="buildH">
-  <h2 id="buildH">Build your plane</h2>
-  <p class="sub">You do the folding, so anything goes. The physics doesn't care what you meant, only where the paper ended up.</p>
-  <div class="tabs" role="tablist">
-   <button role="tab" data-tab="fold" aria-selected="true">Fold<span>creases</span></button>
-   <button role="tab" data-tab="wings" aria-selected="false">Wings<span>keel line</span></button>
-   <button role="tab" data-tab="go" aria-selected="false">Release<span>throw</span></button>
+<section id="board" class="sheetpanel" hidden aria-labelledby="boardH">
+ <h2 id="boardH">Records</h2>
+ <div class="recs" id="recs"></div>
+ <h3>Pilots</h3>
+ <table><thead><tr><th>Pilot</th><th>Planes</th><th style="text-align:right">Points</th></tr></thead><tbody id="pilots"></tbody></table>
+ <h3>How it scores</h3>
+ <details><summary>Points</summary><p>Every flight earns 1 point per metre plus 3 points per second in the air. A personal best in distance or hang time adds 20. Setting a field record for farthest, longest aloft, highest or most loops adds 100 (50 for loops). Beating a real Guinness record (88.3 m, 29.2 s) adds 500.</p></details>
+ <details><summary>Physics</summary><p>Your creases are applied to the paper exactly: every layer on the folding side is mirrored across the crease. The finished stack is measured at 2 mm resolution to find the wing area, span, layer thickness, balance point and inertia. A 2D flight model then handles lift, drag, stall, pitching and tumbling every 3 ms. Roll and yaw aren't modelled, which is why folds are always mirrored.</p></details>
+ <details><summary>Fairness</summary><p>Everyone gets the same thrower and the same size of random wobble, seeded from the plane, so everyone watching sees the same throws. On a quiet field you can throw a plane a minute; when lots of pilots are throwing, the wait stretches towards an hour.</p></details>
+</section>
+
+<!-- Every action lives here. One row is shown per mode (body[data-mode]); the centre button is the main action. -->
+<nav id="dock" aria-label="Actions">
+ <div class="dockrow" data-dock="field">
+  <button class="btn dockbtn" id="openBoard" type="button">Records</button>
+  <button class="btn dockmain" id="foldBtn" type="button">Fold a plane</button>
+  <button class="btn dockbtn" id="home" type="button">Recentre</button>
+ </div>
+ <div class="dockrow" data-dock="fold">
+  <div class="dockrow inner" id="foldMain">
+   <button class="btn dockbtn" id="undo" type="button">Undo</button>
+   <button class="btn dockmain" id="toWings" type="button">Next: wings</button>
+   <button class="btn dockbtn closeSheet" type="button" aria-label="Close the designer">Close</button>
   </div>
-
-  <div class="panel sheet" data-panel="fold">
-   <div class="row2">
-    <div><svg id="foldSvg" aria-label="Your sheet. Drag across it to draw a crease."></svg></div>
-    <div>
-     <h3>Fold the sheet</h3>
-     <p class="sub" style="font-size:14px">Drag a line across the paper to draw a crease. Folds on one side are mirrored on the other, like a real plane; a crease straight across the middle folds both halves at once. The nose is at the top.</p>
-     <div id="orientBox"><label id="orL">Sheet</label><div class="seg" role="group" aria-labelledby="orL"><button type="button" data-or="portrait" aria-pressed="true">Portrait</button><button type="button" data-or="landscape" aria-pressed="false">Landscape</button></div></div>
-     <div class="hint" id="foldHint">Tip: start by folding the top corners down to the centre crease.</div>
-     <div class="btns" id="pendingBtns" hidden><button class="btn primary" id="doFold" type="button">Fold here</button><button class="btn" id="flipFold" type="button">Fold the other side</button><button class="btn" id="cancelFold" type="button">Cancel</button></div>
-     <div class="btns"><button class="btn" id="undo" type="button">Undo</button><button class="btn" id="restart" type="button">Start again</button><button class="btn" id="toWings" type="button">Next: wings</button></div>
-     <p class="sub num" id="foldCount" style="margin-top:10px"></p>
-    </div>
-   </div>
+  <div class="dockrow inner" id="pendingBtns" hidden>
+   <button class="btn dockbtn" id="flipFold" type="button">Other side</button>
+   <button class="btn dockmain" id="doFold" type="button">Fold here</button>
+   <button class="btn dockbtn" id="cancelFold" type="button">Cancel</button>
   </div>
-
-  <div class="panel sheet" data-panel="wings" hidden>
-   <div class="row2">
-    <div><svg id="wingSvg" aria-label="Half of your folded plane with the wing fold line"></svg></div>
-    <div>
-     <h3>Fold it in half, then fold the wings down</h3>
-     <p class="sub" style="font-size:14px">Everything right of the dashed line hangs down as the keel. Everything left of it becomes wing.</p>
-     <label for="hN">Keel depth at the nose <output id="hNo" class="num"></output></label><input id="hN" type="range" min="3" max="105" step="1" value="15">
-     <label for="hT">Keel depth at the tail <output id="hTo" class="num"></output></label><input id="hT" type="range" min="3" max="105" step="1" value="25">
-     <dl class="spec" id="wingSpec"></dl>
-     <label>Balance</label><div class="meter"><i id="balI"></i></div><div class="meterlab"><span>tail-heavy, tumbles</span><span>nose-heavy, dives</span></div>
-     <div class="btns"><button class="btn" data-goto="go" type="button">Next: release</button></div>
-    </div>
-   </div>
-  </div>
-
-  <div class="panel sheet" data-panel="go" hidden>
-   <div class="row2">
-    <div>
-     <h3 id="goTitle">Ready to throw</h3>
-     <p class="sub" style="font-size:14px">The same thrower throws every plane: a 22 m/s arm that works out a sensible angle for your plane, then throws it three times with small random wobbles. Your best throw counts.</p>
-     <label id="paperL">Paper colour</label><div class="pal papers" id="papers" role="group" aria-labelledby="paperL"></div>
-     <div class="btns"><button class="btn primary" id="release" type="button">Release</button></div>
-     <p class="hint" id="goHint"></p>
-    </div>
-    <div id="result"></div>
-   </div>
-  </div>
- </section>
-
- <section aria-labelledby="boardH">
-  <h2 id="boardH">Records</h2>
-  <p class="sub">Breaking a field record earns 100 points. Beating a real Guinness record (88.3 m, 29.2 s) earns 500.</p>
-  <div class="recs" id="recs"></div>
-  <h3 style="margin-top:18px">Pilots</h3>
-  <div class="sheet" style="padding:6px 10px"><table><thead><tr><th>Pilot</th><th>Planes</th><th style="text-align:right">Points</th></tr></thead><tbody id="pilots"></tbody></table></div>
- </section>
-
- <section aria-labelledby="howH">
-  <h2 id="howH">How it scores</h2>
-  <details><summary>Points</summary><p>Every flight earns 1 point per metre plus 3 points per second in the air. A personal best in distance or hang time adds 20. Setting a field record for farthest, longest aloft, highest or most loops adds 100 (50 for loops). Beating a real Guinness record adds 500.</p></details>
-  <details><summary>Physics</summary><p>Your creases are applied to the paper exactly: every layer on the folding side is mirrored across the crease. The finished stack is measured at 2 mm resolution to find the wing area, span, layer thickness, balance point and inertia. A 2D flight model then handles lift, drag, stall, elevator, pitching and tumbling every 3 ms. Wings flutter above a speed set by their layers and span, so flimsy planes are thrown softer. Roll and yaw aren't modelled, which is why folds are always mirrored.</p></details>
-  <details><summary>Fairness</summary><p>Everyone gets the same thrower and the same size of random wobble. The wobble is seeded from the plane, so everyone watching sees the same three throws. Planes are rationed by how busy the field is: when it's quiet you can throw every few minutes; when lots of pilots are throwing, it stretches towards one an hour.</p></details>
- </section>
-</main>
+ </div>
+ <div class="dockrow" data-dock="wings">
+  <button class="btn dockbtn" data-goto="fold" type="button">Back</button>
+  <button class="btn dockmain" data-goto="go" type="button">Next: release</button>
+  <button class="btn dockbtn closeSheet" type="button" aria-label="Close the designer">Close</button>
+ </div>
+ <div class="dockrow" data-dock="go">
+  <button class="btn dockbtn" data-goto="wings" type="button">Back</button>
+  <button class="btn dockmain" id="release" type="button">Release</button>
+  <button class="btn dockbtn closeSheet" type="button" aria-label="Close the designer">Close</button>
+ </div>
+ <div class="dockrow" data-dock="board">
+  <button class="btn dockmain closeSheet" type="button">Back to the field</button>
+ </div>
+ </nav>
 <div id="busy">Folding your plane…</div>
 </body>
 </html>

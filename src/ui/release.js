@@ -20,7 +20,7 @@ export function renderGo(){const cd=cooldown();const G=geometry(spec(),2);
   else if(net.mode==='local')hint='Playing locally: your planes are saved in this browser only.';
   $('goHint').textContent=hint;$('release').disabled=cd>0&&limited();}
 function limited(){return !!net.store&&net.canWrite!==false&&net.limit;}
-setInterval(()=>{if(!document.querySelector('[data-panel="go"]').hidden)renderGo();updateMe();},15000);
+setInterval(()=>{if(document.body.dataset.mode==='go')renderGo();updateMe();},15000);
 $('release').addEventListener('click',release);
 export function records(excludeId){const R={dist:null,time:null,maxZ:null,loops:null};for(const p of net.planes.values()){if(p.id===excludeId)continue;for(const k in R)if(!R[k]||p[k]>R[k][k])R[k]=p;}return R;}
 let releasing=false;
@@ -39,13 +39,13 @@ async function doRelease(){$('busy').style.display='grid';await new Promise(r=>s
   $('busy').style.display='none';
   const p=Object.assign({id,pid:net.uid||'local'},doc);
   $('result').innerHTML='<p class="sub">Watch the field.</p>';
-  $('worldWrap').scrollIntoView({behavior:'smooth',block:'start'});await new Promise(r=>setTimeout(r,650));
+  if(app.ui)app.ui.closeSheets();await new Promise(r=>setTimeout(r,300));
   const recordDist=rec.dist?rec.dist.dist:0;net.planes.set(id,p);
   app.world.event(p,{countdown:true,recordDist,onLand:()=>{renderResult(p,pts,total,saved,saveErr,R);renderBoard();updateMe();renderGo();reveal(p,pts,total);}});}
 export function reveal(p,pts,total){const el=$('reveal');const far=p.style!=='float';el.hidden=false;
   el.innerHTML=`<div class="rv-head"><div class="rv-name">${esc(planeLabel(p))}</div><div class="big num">${far?p.dist.toFixed(1):p.time.toFixed(1)}<span class="unit">${far?'m':'s'}</span></div>
    <div class="sub">${far?`${p.time.toFixed(1)} s in the air`:`${p.dist.toFixed(1)} m forward`} · peak ${p.maxZ.toFixed(1)} m${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div></div>
-   <table class="rv-t"><tbody></tbody></table><div class="rv-total num">0</div><div class="btns" style="justify-content:center"><button class="btn primary" type="button" id="rvClose">Back to the field</button></div>`;
+   <table class="rv-t"><tbody></tbody></table><div class="rv-total num">0</div><div class="btns" style="justify-content:center"><button class="btn dockmain" type="button" id="rvClose">Back to the field</button></div>`;
   const tb=el.querySelector('tbody');let i=0,run=0;const tot=el.querySelector('.rv-total');
   const next=()=>{if(el.hidden)return;if(i<pts.length){const q=pts[i];tb.insertAdjacentHTML('beforeend',`<tr class="${q[1]>=100?'rec':''}"><td>${esc(q[0])}</td><td class="r">+${q[1]}</td></tr>`);run+=q[1];tot.textContent=run+' points';app.audio.blip(i);i++;setTimeout(next,reduceMotion?60:420);}
     else{tot.classList.add('done');app.audio.total();}};

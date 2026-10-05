@@ -24,11 +24,30 @@ async function sheetToClient(page,x,y){return page.evaluate(([x,y])=>{const g=do
 async function drag(page,a,b){await page.mouse.move(a[0],a[1]);await page.mouse.down();
   for(let i=1;i<=8;i++)await page.mouse.move(a[0]+(b[0]-a[0])*i/8,a[1]+(b[1]-a[1])*i/8);await page.mouse.up();}
 
-test('simple designer: fold, wings, release; no drawing, text or trim controls',async({page})=>{
+test('full-screen field, every action in the bottom dock; designer is fold, wings, release',async({page})=>{
   await page.goto(LOCAL);
-  await expect(page.locator('[data-tab]')).toHaveCount(3);
-  await expect(page.locator('#elev, #dih, [data-style], [data-gsm], [data-tab="trim"]')).toHaveCount(0);
-  await expect(page.locator('[data-tab="draw"], #inkC, [data-panel="draw"], #pname, input[type=text]')).toHaveCount(0);
+  // No drawing, text or trim controls anywhere.
+  await expect(page.locator('#elev, #dih, [data-style], [data-gsm], #inkC, #pname, input[type=text]')).toHaveCount(0);
+  await expect(page.locator('[data-stepdot]')).toHaveCount(3);
+  // The field fills the screen and nothing scrolls.
+  const vp=page.viewportSize();const wb=await page.locator('#worldWrap').boundingBox();
+  expect(wb.width).toBe(vp.width);expect(wb.height).toBe(vp.height);
+  expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+  // One centred main button at the bottom; the designer is closed.
+  const fb=await page.locator('#foldBtn').boundingBox();
+  expect(Math.abs(fb.x+fb.width/2-vp.width/2)).toBeLessThan(2);
+  expect(fb.y+fb.height).toBeGreaterThan(vp.height-90);
+  await expect(page.locator('#designer')).toBeHidden();
+  // Each mode shows exactly one row of dock actions.
+  const visibleMain=()=>page.locator('#dock .dockmain:visible');
+  await expect(visibleMain()).toHaveText(['Fold a plane']);
+  await page.locator('#foldBtn').click();
+  await expect(page.locator('#designer')).toBeVisible();await expect(visibleMain()).toHaveText(['Next: wings']);
+  await page.locator('#toWings').click();await expect(visibleMain()).toHaveText(['Next: release']);
+  await page.locator('[data-dock="wings"] [data-goto="go"]').click();await expect(visibleMain()).toHaveText(['Release']);
+  await page.locator('[data-dock="go"] .closeSheet').click();
+  await expect(page.locator('#designer')).toBeHidden();await expect(visibleMain()).toHaveText(['Fold a plane']);
+  await page.locator('#openBoard').click();await expect(page.locator('#board')).toBeVisible();await expect(visibleMain()).toHaveText(['Back to the field']);
 });
 
 test('page loads with no console errors',async({page})=>{
@@ -49,17 +68,18 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   // Music starts on the first interaction: the manifest, then the first phrase's stems.
   const musicReq=page.waitForRequest(r=>/assets\/music\/p\d\d-\w+\.mp3$/.test(r.url()),{timeout:15e3});
 
-  // Fold the top-left corner to the centre line; the mirror fold is added automatically.
-  await page.locator('#foldSvg').scrollIntoViewIfNeeded();
+  // Open the designer from the dock, then fold the top-left corner to the centre line
+  // (the mirror fold is added automatically).
+  await page.locator('#foldBtn').click();
   await drag(page,await sheetToClient(page,105,297),await sheetToClient(page,0,192));
   await expect(page.locator('#pendingBtns')).toBeVisible();
   await page.locator('#doFold').click();
   await expect(page.locator('#foldCount')).toHaveText('1 crease so far.');
   await musicReq;
 
-  await page.locator('[data-tab="wings"]').click();
+  await page.locator('#toWings').click();
   await expect(page.locator('#wingSpec')).toContainText('Wingspan');
-  await page.locator('[data-tab="go"]').click();
+  await page.locator('[data-dock="wings"] [data-goto="go"]').click();
   await expect(page.locator('#goTitle')).toHaveText('White plane');
   await page.locator('#papers button[aria-label="paper blue"]').click();
   await expect(page.locator('#goTitle')).toHaveText('Blue plane');
@@ -79,11 +99,13 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('onesheet-local-v1')).planes[0]);
   expect(saved.name).toBeUndefined();expect(saved.paper).toBe('#CDE7FF');expect(saved.img).toBeUndefined();
 
-  // Persisted locally: survives a reload, and the hourly limit holds.
+  // Persisted locally: survives a reload, and the throw limit holds.
   await page.reload();
   await expect(page.locator('#ticker')).toContainText('Blue plane');
+  await page.locator('#openBoard').click();
   await expect(page.locator('#recs')).toContainText('Blue plane');
-  await page.locator('[data-tab="go"]').click();
+  await page.locator('#board ~ #dock .closeSheet:visible').click();
+  await page.locator('#foldBtn').click();await page.locator('#toWings').click();await page.locator('[data-dock="wings"] [data-goto="go"]').click();
   await expect(page.locator('#release')).toBeDisabled();
   expect(errs).toEqual([]);
 });

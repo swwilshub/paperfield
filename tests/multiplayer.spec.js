@@ -14,7 +14,8 @@ async function open(browser,playwright){const ctx=await browser.newContext({...p
 test('a throw by one player appears live for another',async({browser,playwright})=>{
   test.setTimeout(120e3);
   const A=await open(browser,playwright),B=await open(browser,playwright);
-  await A.page.locator('[data-tab="go"]').click();await A.page.locator('#papers button[aria-label="paper green"]').click();
+  const toRelease=async P=>{await P.locator('#foldBtn').click();await P.locator('#toWings').click();await P.locator('[data-dock="wings"] [data-goto="go"]').click();};
+  await toRelease(A.page);await A.page.locator('#papers button[aria-label="paper green"]').click();
   await A.page.locator('#release').click();
   await expect(A.page.locator('#reveal')).toBeVisible({timeout:60e3});
   await expect(A.page.locator('#result')).toContainText('Saved to the field',{timeout:20e3});
@@ -28,7 +29,7 @@ test('a throw by one player appears live for another',async({browser,playwright}
 
   // Reloading B shows the plane again (persisted), and A's next plane is rate-limited.
   await B.page.reload();await expect(B.page.locator('#ticker')).toContainText('Green plane',{timeout:20e3});
-  await A.page.locator('#rvClose').click();await A.page.locator('[data-tab="go"]').click();
+  await A.page.locator('#rvClose').click();await toRelease(A.page);
   await expect(A.page.locator('#release')).toBeDisabled();
 
   // A reload keeps the same anonymous pilot: same points, still rate-limited.

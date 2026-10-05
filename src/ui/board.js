@@ -5,7 +5,7 @@ import {records,myPilot,cooldown,fmtWait} from './release.js';
 
 export function renderBoard(){const R=records(null);const cats=[['dist','Farthest',' m'],['time','Longest aloft',' s'],['maxZ','Highest climb',' m'],['loops','Most loops','']];
   $('recs').innerHTML=cats.map(c=>{const p=R[c[0]];return p&&(c[0]!=='loops'||p.loops>0)?`<button class="rec" type="button" data-pl="${esc(p.id)}"><small>${c[1]}</small><div class="v num">${p[c[0]]}${c[2]}</div><small>${esc(planeLabel(p))} by ${esc(nm(p.pid))}</small></button>`:`<div class="rec"><small>${c[1]}</small><div class="v">–</div><small>Not set yet</small></div>`;}).join('');
-  $('recs').querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{app.world.focus(b.dataset.pl);$('worldWrap').scrollIntoView({behavior:'smooth'});});
+  $('recs').querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{if(app.ui)app.ui.closeSheets();app.world.focus(b.dataset.pl);});
   const ps=Object.entries(net.pilots).sort((a,b)=>(b[1].score||0)-(a[1].score||0)).slice(0,25);
   $('pilots').innerHTML=ps.length?ps.map(([id,p])=>`<tr><td>${esc(nm(id))}</td><td class="num">${p.planes||0}</td><td class="r">${p.score||0}</td></tr>`).join(''):'<tr><td colspan="3" class="sub">Nobody has thrown yet.</td></tr>';
   const recent=[...net.planes.values()].sort((a,b)=>b.at-a.at).slice(0,3);

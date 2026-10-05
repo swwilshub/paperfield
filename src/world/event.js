@@ -16,13 +16,13 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
     const ms=[25,50,75].map(d=>({d,txt:d+' m'}));if(opts.recordDist&&opts.recordDist>3)ms.push({d:opts.recordDist,txt:'New field record!',big:true});ms.push({d:GUIN.dist,txt:'Past the world record!',big:true});ms.sort((a,b)=>a.d-b.d);
     W.setRecordRing(opts.recordDist||0);
     const ev=W.ev={it,p,phase:opts.countdown?'count':'fly',t:0,sim:0,ms,opts,loopsSeen:0,peakDone:false,prev:null,last:-1,shake:0};
-    wrap.classList.add('event');setTimeout(W.resize,30);$('skip').hidden=false;$('eventInfo').innerHTML=`<b>${esc(planeLabel(p))}</b> by ${esc(nm(p.pid))}`;
+    wrap.classList.add('event');if(app.ui)app.ui.eventMode(true);setTimeout(W.resize,30);$('skip').hidden=false;$('eventInfo').innerHTML=`<b>${esc(planeLabel(p))}</b> by ${esc(nm(p.pid))}`;
     const h=p.heading*Math.PI/180;it.dir=new THREE.Vector3(Math.cos(h),0,Math.sin(h));it.side=new THREE.Vector3(-Math.sin(h),0,Math.cos(h));
     W.setPose(it,0,p.tr[2],p.tr[3]);const P=it.g.position;cam.position.copy(P).addScaledVector(it.dir,-9).addScaledVector(it.side,4).add(new THREE.Vector3(0,3,0));ev.look=P.clone().addScaledVector(it.dir,3).add(new THREE.Vector3(0,-0.4,0));cam.fov=50;cam.updateProjectionMatrix();
     if(ev.phase==='count'){audio.countdown(p.id);callout('3',true);}else{audio.setSong(p.id);audio.go();}}
   function endEvent(silent){const ev=W.ev;if(!ev)return;const it=ev.it;if(ev.phase!=='land')W.rest(it);const O=W.O;
     const P=it.g.position;const d=cam.position.clone().sub(P);O.tx=P.x;O.ty=0;O.tz=P.z;O.r=Math.max(4,d.length());O.el=Math.max(0.05,Math.asin(Math.max(-1,Math.min(1,d.y/O.r))));O.az=Math.atan2(d.z,d.x);
-    cam.fov=50;cam.updateProjectionMatrix();W.ev=null;wrap.classList.remove('event');setTimeout(W.resize,30);$('skip').hidden=true;$('flightHud').style.display='none';$('callout').className='';$('eventInfo').innerHTML='';$('reveal').hidden=true;audio.idle();if(!silent)W.showCard(it.p);}
+    cam.fov=50;cam.updateProjectionMatrix();W.ev=null;wrap.classList.remove('event');if(app.ui)app.ui.eventMode(false);setTimeout(W.resize,30);$('skip').hidden=true;$('flightHud').style.display='none';$('callout').className='';$('eventInfo').innerHTML='';$('reveal').hidden=true;audio.idle();if(!silent)W.showCard(it.p);}
   $('skip').onclick=()=>{const ev=W.ev;if(!ev)return;if(ev.phase==='land'){endEvent();return;}land();};
   function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);ev.phase='land';ev.t=0;audio.land();if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p));
     const far=p.style!=='float';callout(far?p.dist.toFixed(1)+' m':p.time.toFixed(1)+' s',true);

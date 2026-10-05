@@ -46,7 +46,7 @@ export function renderFold(){const W=S.W,L=S.L,cx=W/2,pad=12;const polys=curPoly
   g+='</g>';fsvg.innerHTML=g;
   $('orientBox').hidden=S.folds.length>0;$('undo').disabled=!S.actions.length;$('restart').disabled=!S.folds.length;
   $('foldCount').textContent=S.actions.length?`${S.actions.length} crease${S.actions.length>1?'s':''} so far.`:'';
-  $('pendingBtns').hidden=!(pd&&pd.res&&pd.res.folds);}
+  $('pendingBtns').hidden=!(pd&&pd.res&&pd.res.folds);$('foldMain').hidden=!$('pendingBtns').hidden;}
 fsvg.addEventListener('pointerdown',e=>{if(app.audio)app.audio.stage('fold');if(S.actions.length>=14){$('foldHint').innerHTML='<span class="err">That\'s 14 creases. The paper won\'t take more.</span>';return;}
   fsvg.setPointerCapture(e.pointerId);const polys=curPolys();S.pending=null;S.drag={a:snap(svgPoint(e),polys),b:null,polys};renderFold();});
 fsvg.addEventListener('pointermove',e=>{if(!S.drag)return;S.drag.b=snap(svgPoint(e),S.drag.polys);renderFold();});
