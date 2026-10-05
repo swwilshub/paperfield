@@ -17,25 +17,28 @@ test('a throw by one player appears live for another',async({browser,playwright}
   const toRelease=async P=>{await P.locator('#foldBtn').click();await P.locator('#toWings').click();await P.locator('[data-dock="wings"] [data-goto="go"]').click();};
   await toRelease(A.page);await A.page.locator('#papers button[aria-label="paper green"]').click();
   await A.page.locator('#release').click();
-  await expect(A.page.locator('#reveal')).toBeVisible({timeout:60e3});
-  await expect(A.page.locator('#result')).toContainText('Saved to the field',{timeout:20e3});
 
-  // B: the live toast and the ticker show A's plane under A's generated pilot name.
+  // B: the live toast (shown for 12 s) names A's plane as soon as it's saved.
   await expect(B.page.locator('#toast')).toContainText('just threw',{timeout:20e3});
   await expect(B.page.locator('#toast')).toContainText('Green plane');
-  await expect(B.page.locator('#ticker')).toContainText('Green plane');
-  const name=(await B.page.locator('#pilots tr td').first().textContent()).trim();
-  expect(name).toMatch(/^[A-Z][a-z]+ [A-Z][a-z]+$/);
 
-  // Reloading B shows the plane again (persisted), and A's next plane is rate-limited.
-  await B.page.reload();await expect(B.page.locator('#ticker')).toContainText('Green plane',{timeout:20e3});
+  // A: the flight plays, it's saved to the shared field, and the next plane is rate-limited.
+  // (Checked straight away: on a quiet field the limit is only a minute.)
+  await expect(A.page.locator('#reveal')).toBeVisible({timeout:60e3});
+  await expect(A.page.locator('#result')).toContainText('Saved to the field',{timeout:20e3});
   await A.page.locator('#rvClose').click();await toRelease(A.page);
   await expect(A.page.locator('#release')).toBeDisabled();
 
-  // A reload keeps the same anonymous pilot: same points, still rate-limited.
-  const chip=(await A.page.locator('#me').textContent()).trim();
-  expect(chip).toMatch(/^[1-9]\d* pts/);
+  // B: the ticker and leaderboard show A's plane under A's generated pilot name; a reload keeps it.
+  await expect(B.page.locator('#ticker')).toContainText('Green plane');
+  const name=(await B.page.locator('#pilots tr td').first().textContent()).trim();
+  expect(name).toMatch(/^[A-Z][a-z]+ [A-Z][a-z]+$/);
+  await B.page.reload();await expect(B.page.locator('#ticker')).toContainText('Green plane',{timeout:20e3});
+
+  // A reload keeps the same anonymous pilot: the same points come back.
+  const pts=(await A.page.locator('#me').textContent()).trim().split(' · ')[0];
+  expect(pts).toMatch(/^[1-9]\d* pts$/);
   await A.page.reload();
-  await expect(A.page.locator('#me')).toHaveText(new RegExp('^'+chip.split(' · ')[0]+' · next plane in'),{timeout:20e3});
+  await expect(A.page.locator('#me')).toHaveText(new RegExp('^'+pts+' · '),{timeout:20e3});
   expect(A.errs).toEqual([]);expect(B.errs).toEqual([]);
 });
