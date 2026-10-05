@@ -1,0 +1,36 @@
+{
+  "classic-dart": {
+    "seed": "golden-classic-dart",
+    "spec": {"W":210,"L":297,"hT":25,"hN":15,"gsm":80,"dih":5,"delta":6,"style":"far",
+      "folds":[
+        {"P":[105,297],"Q":[0,192],"M":[20,290]},
+        {"P":[105,297],"Q":[210,192],"M":[190,290]},
+        {"P":[105,297],"Q":[0,43.5],"M":[5,150]},
+        {"P":[105,297],"Q":[210,43.5],"M":[205,150]}
+      ]}
+  },
+  "flat-sheet": {
+    "seed": "golden-flat-sheet",
+    "spec": {"W":210,"L":297,"hT":3,"hN":3,"gsm":80,"dih":0,"delta":0,"style":"far","folds":[]}
+  },
+  "all-keel": {
+    "seed": "golden-all-keel",
+    "spec": {"W":210,"L":297,"hT":105,"hN":105,"gsm":80,"dih":5,"delta":6,"style":"far","folds":[]}
+  },
+  "landscape-glider": {
+    "seed": "golden-landscape-glider",
+    "spec": {"W":297,"L":210,"hT":10,"hN":10,"gsm":80,"dih":8,"delta":8,"style":"float",
+      "folds":[
+        {"P":[0,180],"Q":[297,180],"M":[148.5,200]}
+      ]}
+  },
+  "nose-heavy-float": {
+    "seed": "golden-nose-heavy-float",
+    "spec": {"W":210,"L":297,"hT":20,"hN":12,"gsm":100,"dih":5,"delta":12,"style":"float",
+      "folds":[
+        {"P":[0,257],"Q":[210,257],"M":[105,280]},
+        {"P":[0,227],"Q":[210,227],"M":[105,250]},
+        {"P":[0,197],"Q":[210,197],"M":[105,220]}
+      ]}
+  }
+}
