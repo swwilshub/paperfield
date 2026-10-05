@@ -28,7 +28,7 @@ BASE_URL=https://<user>.github.io/paperfield/ npx playwright test -g "no console
 
 ## Deploy (GitHub Pages)
 
-`.github/workflows/ci.yml` runs the tests on every push. On `main` it also deploys to Pages and then loads the live URL to check for console errors.
+`.github/workflows/ci.yml` runs the tests on every push. On `main` (or the repo's default branch) it also deploys to Pages and then loads the live URL to check for console errors.
 
 One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 
