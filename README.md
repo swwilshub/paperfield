@@ -1,8 +1,8 @@
 # One Sheet
 
-Fold one A4 paper plane an hour, pick a paper colour, release it. There are no drawings or plane names: the only thing a player leaves behind is the plane. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
+Fold an A4 paper plane, pick a paper colour, release it. There are no drawings or plane names: the only thing a player leaves behind is the plane. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
 
-Status: **M2**. Shared multiplayer field on Firebase once `src/net/firebase-config.js` is filled in (see Multiplayer); until then, local play (planes saved in this browser).
+Status: **M2**. Shared multiplayer field on Firebase (project `paperfield-ab53c`); falls back to local play if Firebase is unreachable.
 
 ## Run locally
 
@@ -115,7 +115,7 @@ src/ui/                 state.js (shared state), tabs, fold, wings, trim, shapes
 src/world/              scene.js (renderer, camera, loop), planes.js (meshes, picking), event.js (throw replay)
 src/audio/              music.js (API, sound effects), mixer.js (stem player), sequencer.js (generative arrangement)
 assets/music/           phrase files + manifest.json (generated; see Music)
-src/net/                store.js (adapter interface), local.js, firebase.js (M2), firebase-config.js
-tests/                  physics.test.js, golden.json, fixtures/specs.json, smoke.spec.js
+src/net/                store.js (adapter interface), local.js, firebase.js, firebase-config.js, cooldown.js, pilots.js, planedoc.js
+tests/                  unit tests, golden.json, fixtures/, smoke.spec.js; rules/firebase/multiplayer tests (emulators)
 tools/run-legacy.cjs    regenerates golden.json from the legacy file
 ```
