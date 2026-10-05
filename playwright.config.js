@@ -1,5 +1,5 @@
 import {defineConfig,devices} from '@playwright/test';
-const BASE=process.env.BASE_URL;
+const BASE=process.env.BASE_URL&&process.env.BASE_URL.replace(/\/?$/,'/');
 export default defineConfig({
   testDir:'tests',testMatch:/.*\.spec\.js/,timeout:90e3,
   use:{baseURL:BASE||'http://127.0.0.1:8080/',...devices['Pixel 5'],
