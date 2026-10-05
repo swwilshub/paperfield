@@ -12,7 +12,7 @@ open http://localhost:8080/
 ```
 
 No build step: native ES modules, with three.js r128 pinned through the import map in `index.html`.
-Add `?nolimit` to the URL to switch off the throw limit in local mode.
+Add `?local` to play without Firebase, and `?nolimit` to switch off the throw limit in local mode.
 To reset the local field, run `localStorage.removeItem('onesheet-local-v1')` in the console.
 
 ## Tests

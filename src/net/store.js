@@ -24,6 +24,8 @@ function emulatorSetup(){const local=/^(localhost|127\.0\.0\.1)$/.test(location.
     opts:{authEmulator:'http://127.0.0.1:9099',firestoreEmulator:{host:'127.0.0.1',port:8085}}};}
 
 export async function openStore(){
+  // `?local` skips the backend entirely (tests, or offline play by choice).
+  if(new URLSearchParams(location.search).has('local')){const s=createLocalStore();return{store:s,info:await s.connect()};}
   try{
     const emu=emulatorSetup();
     const {firebaseConfig}=emu?{firebaseConfig:emu.config}:await import('./firebase-config.js');

@@ -2,6 +2,11 @@
 // Run: npx playwright test   (or BASE_URL=https://<user>.github.io/<repo>/ npx playwright test to check Pages)
 import {test,expect} from '@playwright/test';
 
+// The load check uses the real page against BASE_URL (the deployed site, Firebase included) and
+// local play otherwise. Everything that throws a plane always uses local play (`?local`), so tests
+// never touch the live Firebase project's data.
+const HOME=process.env.BASE_URL?'./':'./?local',LOCAL='./?local';
+
 // Sandboxes whose browser can't verify an intercepting proxy's CA can set PW_ROUTE_EXTERNAL=1:
 // external requests are then fetched by Playwright's Node side (TLS still verified there).
 test.beforeEach(async({page})=>{if(process.env.PW_ROUTE_EXTERNAL)await page.route(/^https:\/\//,async r=>r.fulfill({response:await r.fetch()}));});
@@ -20,13 +25,13 @@ async function drag(page,a,b){await page.mouse.move(a[0],a[1]);await page.mouse.
   for(let i=1;i<=8;i++)await page.mouse.move(a[0]+(b[0]-a[0])*i/8,a[1]+(b[1]-a[1])*i/8);await page.mouse.up();}
 
 test('no drawing tools or text inputs on the page',async({page})=>{
-  await page.goto('./');
+  await page.goto(LOCAL);
   await expect(page.locator('[data-tab]')).toHaveCount(4);
   await expect(page.locator('[data-tab="draw"], #inkC, [data-panel="draw"], #pname, input[type=text]')).toHaveCount(0);
 });
 
 test('page loads with no console errors',async({page})=>{
-  const errs=watchConsole(page);await page.goto('./');
+  const errs=watchConsole(page);await page.goto(HOME);
   await expect(page.locator('#me')).toContainText('pts');
   await expect(page.locator('#ticker')).not.toContainText('Loading');
   await page.waitForTimeout(1500);
@@ -34,7 +39,7 @@ test('page loads with no console errors',async({page})=>{
 });
 
 test('full fold, trim, release, event and reveal loop works locally',async({page})=>{
-  const errs=watchConsole(page);await page.goto('./');
+  const errs=watchConsole(page);await page.goto(LOCAL);
   await page.evaluate(()=>localStorage.clear());await page.reload();
   await expect(page.locator('#me')).toContainText('plane ready');
 
