@@ -48,10 +48,10 @@ test('a plane on its own, or a pilot update on its own, is rejected',async()=>{
   await assertFails(setDoc(doc(fs,'planes','p1'),Object.assign(toFirestore(planeDoc('p1','alice',build,R,120,0)),{uid:'alice',at:serverTimestamp()})));
   await assertFails(setDoc(doc(fs,'pilots','alice'),{score:120,planes:1,last:serverTimestamp(),lastPlane:'p1',pbDist:1,pbTime:1}));
 });
-test('a second plane within 2 minutes is rejected; after 2 minutes it is accepted',async()=>{
-  await seedPilot('alice',1);
+test('a second plane within 50 s is rejected; after a minute it is accepted',async()=>{
+  await seedPilot('alice',0.5);
   await assertFails(throwBatch(db('alice'),'alice','p2',{prev:{score:200,planes:1}}));
-  await seedPilot('alice',3);
+  await seedPilot('alice',1.1);
   await assertSucceeds(throwBatch(db('alice'),'alice','p3',{prev:{score:200,planes:1}}));
 });
 test("writing another pilot's doc or plane is rejected",async()=>{

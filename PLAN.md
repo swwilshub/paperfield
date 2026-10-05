@@ -17,7 +17,7 @@ Goal: the prototype split into ES modules, working without a backend, live on Pa
 **Done when:**
 - The golden tests pass.
 - The Pages URL loads with no console errors.
-- A full fold → trim → release → event → reveal loop works in local mode on a phone.
+- A full fold → wings → release → event → reveal loop works in local mode on a phone.
 
 ---
 

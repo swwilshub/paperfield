@@ -10,6 +10,7 @@ export const paperOf=p=>PAPERS.includes(p&&p.paper)?p.paper:'#FFFFFF';
 export const PAPER_NAMES=['White','Yellow','Blue','Pink','Green','Lilac'];
 // Planes have no player-written names: they are labelled by paper colour. Any stored `name` is ignored.
 export const planeLabel=p=>PAPER_NAMES[PAPERS.indexOf(paperOf(p))]+' plane';
+// Trim is fixed (no controls): elevator 6°, wing angle 5°, thrower aims for distance, 80 gsm paper.
 export const S={orient:'portrait',W:210,L:297,folds:[],actions:[],pending:null,drag:null,hN:15,hT:25,elev:6,dih:5,style:'far',gsm:80,paper:'#FFFFFF'};
 // Mirror of what the store has told us. `store` is the adapter (src/net/store.js).
 export const net={store:null,uid:null,mode:null,canWrite:null,limit:true,pilots:{},planes:new Map(),loaded:false,ready:false};

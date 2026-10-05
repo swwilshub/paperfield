@@ -40,7 +40,7 @@ test('two players: a throw by one appears live for the other, and the rules acce
   await waitFor(()=>a.me()&&a.me().lastPlane===id);
   assert.equal(b.nameOf(ia.uid),a.nameOf(ia.uid),'same generated name everywhere');
 
-  // A second throw straight away breaks the 2-minute floor.
+  // A second throw straight away breaks the floor between throws.
   const id2=id+'b';const doc2=planeDoc(id2,ia.uid,build,R,100,Date.now());
   await assert.rejects(a.savePlane(id2,doc2,{score:250,planes:2,pbDist:doc.dist,pbTime:doc.time}),e=>e.code==='permission_denied');
 });

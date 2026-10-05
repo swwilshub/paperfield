@@ -6,7 +6,7 @@ rules_version = '2';
 // the other with getAfter(), so neither can be written alone. What the rules can't check:
 // the flight itself (points, distance) is computed in the browser, so points are only capped.
 // The busy-field throw limit (src/net/cooldown.js) needs document counts, which rules can't do,
-// so only its 2-minute floor is enforced here.
+// so only a floor (just under its 1-minute minimum) is enforced here.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -56,8 +56,8 @@ service cloud.firestore {
       allow create, update: if signedIn() && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['score', 'planes', 'last', 'lastPlane', 'pbDist', 'pbTime'])
         && request.resource.data.last == request.time
-        // 2-minute floor between throws
-        && (resource == null || request.time > resource.data.last + duration.value(2, 'm'))
+        // floor between throws: the game allows one a minute; 50 s leaves room for clock skew
+        && (resource == null || request.time > resource.data.last + duration.value(50, 's'))
         // the plane named in lastPlane is new in this same batch, and is ours
         && !exists(planePath(request.resource.data.lastPlane))
         && getAfter(planePath(request.resource.data.lastPlane)).data.uid == uid

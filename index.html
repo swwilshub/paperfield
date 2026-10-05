@@ -37,7 +37,6 @@
   <div class="tabs" role="tablist">
    <button role="tab" data-tab="fold" aria-selected="true">Fold<span>creases</span></button>
    <button role="tab" data-tab="wings" aria-selected="false">Wings<span>keel line</span></button>
-   <button role="tab" data-tab="trim" aria-selected="false">Trim<span>bends</span></button>
    <button role="tab" data-tab="go" aria-selected="false">Release<span>throw</span></button>
   </div>
 
@@ -66,23 +65,6 @@
      <label for="hT">Keel depth at the tail <output id="hTo" class="num"></output></label><input id="hT" type="range" min="3" max="105" step="1" value="25">
      <dl class="spec" id="wingSpec"></dl>
      <label>Balance</label><div class="meter"><i id="balI"></i></div><div class="meterlab"><span>tail-heavy, tumbles</span><span>nose-heavy, dives</span></div>
-     <div class="btns"><button class="btn" data-goto="trim" type="button">Next: trim</button></div>
-    </div>
-   </div>
-  </div>
-
-  <div class="panel sheet" data-panel="trim" hidden>
-   <div class="row2">
-    <div>
-     <label for="elev">Elevator: bend the back edge <output id="elevo" class="num"></output></label><input id="elev" type="range" min="-15" max="35" step="1" value="6">
-     <label for="dih">Wing angle seen from behind <output id="diho" class="num"></output></label><input id="dih" type="range" min="-10" max="25" step="1" value="5">
-     <label id="stL">Ask the thrower for</label><div class="seg" role="group" aria-labelledby="stL"><button type="button" data-style="far" aria-pressed="true">Distance</button><button type="button" data-style="float" aria-pressed="false">Hang time</button></div>
-     <label id="gsmL">Paper</label><div class="seg" role="group" aria-labelledby="gsmL"><button type="button" data-gsm="80" aria-pressed="true">80 gsm</button><button type="button" data-gsm="100" aria-pressed="false">100 gsm</button></div>
-     <label id="paperL">Paper colour</label><div class="pal papers" id="papers" role="group" aria-labelledby="paperL"></div>
-    </div>
-    <div>
-     <h3>What these do</h3>
-     <p class="sub" style="font-size:14px">Bending the back edge up lifts the nose and makes it float; too much and it stalls or loops. Bending it down makes it dive. Wings tilted up keep it level; tilted down look dramatic. Heavier paper is stiffer, so it can be thrown harder, but it sinks faster.</p>
      <div class="btns"><button class="btn" data-goto="go" type="button">Next: release</button></div>
     </div>
    </div>
@@ -93,6 +75,7 @@
     <div>
      <h3 id="goTitle">Ready to throw</h3>
      <p class="sub" style="font-size:14px">The same thrower throws every plane: a 22 m/s arm that works out a sensible angle for your plane, then throws it three times with small random wobbles. Your best throw counts.</p>
+     <label id="paperL">Paper colour</label><div class="pal papers" id="papers" role="group" aria-labelledby="paperL"></div>
      <div class="btns"><button class="btn primary" id="release" type="button">Release</button></div>
      <p class="hint" id="goHint"></p>
     </div>

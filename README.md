@@ -1,6 +1,6 @@
 # One Sheet
 
-Fold an A4 paper plane, pick a paper colour, release it. There are no drawings or plane names: the only thing a player leaves behind is the plane. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
+Fold an A4 paper plane, set the wings, pick a paper colour, release it. There are no drawings or plane names: the only thing a player leaves behind is the plane. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
 
 Status: **M2**. Shared multiplayer field on Firebase (project `paperfield-ab53c`); falls back to local play if Firebase is unreachable.
 
@@ -20,7 +20,7 @@ To reset the local field, run `localStorage.removeItem('onesheet-local-v1')` in 
 ```sh
 npm test               # physics golden, music sequencer and throw-limit tests (node --test)
 npm ci && npx playwright install chromium
-npx playwright test    # smoke: page loads with no console errors; full fold → trim → release → reveal loop on a phone viewport
+npx playwright test    # smoke: page loads with no console errors; full fold → wings → release → reveal loop on a phone viewport
 BASE_URL=https://<user>.github.io/paperfield/ npx playwright test -g "no console errors"   # check the live site
 ```
 
@@ -30,7 +30,7 @@ BASE_URL=https://<user>.github.io/paperfield/ npx playwright test -g "no console
 
 "Fade to Wind" by palettedisk, played as nine stems by a dynamic mixer:
 
-- **Progressive layers.** Each stage sets a level per stem. The idle field is felt piano, pads and wind. Folding, wings, trim and release bring in strings, guitar, bass and percussion. The countdown builds, the throw brings in the full band (drums and percussion follow speed, brass and strings follow height), the landing swells, then it settles back.
+- **Progressive layers.** Each stage sets a level per stem. The idle field is felt piano, pads and wind. Folding, wings and release bring in strings, guitar, bass and percussion. The countdown builds, the throw brings in the full band (drums and percussion follow speed, brass and strings follow height), the landing swells, then it settles back.
 - **Generated as it plays.** The song is cut into 8-bar phrases (120 BPM, 2 s bars). At each phrase end the sequencer picks the next one at random from those that fit harmonically after the current bar, weighted to suit the stage and away from recent phrases, so the arrangement never repeats exactly. A throw jumps to a fitting full-band phrase at the next bar line. It is seeded by plane, so everyone watching a throw hears the same arrangement.
 - **Light on phones.** Only the phrases about to play are fetched (about 0.5–1 MB each) and decoded at 32 kHz; at most three are kept.
 
@@ -55,8 +55,9 @@ reached, the game falls back to local play.
 
 - **No player-written text.** Pilots get a generated name from their anonymous ID (e.g. "Amber Heron");
   planes are labelled by paper colour.
-- **Throw limit scales with activity** (`src/net/cooldown.js`): 3 min × (pilots this hour + planes in the
-  last 10 min ÷ 2), between 2 and 60 min. The rules enforce the 2-minute floor.
+- **Throw limit scales with activity** (`src/net/cooldown.js`): (pilots this hour + planes in the last
+  10 min ÷ 2 − 2) minutes, between 1 and 60. A quiet field allows one a minute. The rules enforce a
+  50-second floor.
 - **Security rules** (`firestore.rules`): a throw must create the plane and update the pilot in one batch;
   the score must rise by exactly the plane's points (capped at 1500); exact plane shape, palette colours
   only, server timestamps only; only admins (`admins/{uid}`, added by hand) can delete planes.
@@ -112,7 +113,7 @@ One-time setup: **Settings → Pages → Build and deployment → Source: GitHub
 ```
 index.html              markup; loads styles/main.css and src/main.js
 src/core/               physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
-src/ui/                 state.js (shared state), tabs, fold, wings, trim, shapes (plane outlines), release, board
+src/ui/                 state.js (shared state), tabs, fold, wings, paper (colour picker), shapes (plane outlines), release, board
 src/world/              scene.js (renderer, camera, loop), planes.js (meshes, picking), event.js (throw replay)
 src/audio/              music.js (API, sound effects), mixer.js (stem player), sequencer.js (generative arrangement)
 assets/music/           phrase files + manifest.json (generated; see Music)

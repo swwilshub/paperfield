@@ -1,4 +1,4 @@
-// End-to-end: fold -> wings -> trim -> release -> event -> reveal, in local mode on a phone viewport.
+// End-to-end: fold -> wings -> release -> event -> reveal, in local mode on a phone viewport.
 // Run: npx playwright test   (or BASE_URL=https://<user>.github.io/<repo>/ npx playwright test to check Pages)
 import {test,expect} from '@playwright/test';
 
@@ -24,9 +24,10 @@ async function sheetToClient(page,x,y){return page.evaluate(([x,y])=>{const g=do
 async function drag(page,a,b){await page.mouse.move(a[0],a[1]);await page.mouse.down();
   for(let i=1;i<=8;i++)await page.mouse.move(a[0]+(b[0]-a[0])*i/8,a[1]+(b[1]-a[1])*i/8);await page.mouse.up();}
 
-test('no drawing tools or text inputs on the page',async({page})=>{
+test('simple designer: fold, wings, release; no drawing, text or trim controls',async({page})=>{
   await page.goto(LOCAL);
-  await expect(page.locator('[data-tab]')).toHaveCount(4);
+  await expect(page.locator('[data-tab]')).toHaveCount(3);
+  await expect(page.locator('#elev, #dih, [data-style], [data-gsm], [data-tab="trim"]')).toHaveCount(0);
   await expect(page.locator('[data-tab="draw"], #inkC, [data-panel="draw"], #pname, input[type=text]')).toHaveCount(0);
 });
 
@@ -40,7 +41,7 @@ test('page loads with no console errors',async({page})=>{
   expect(errs).toEqual([]);
 });
 
-test('full fold, trim, release, event and reveal loop works locally',async({page})=>{
+test('full fold, wings, release, event and reveal loop works locally',async({page})=>{
   const errs=watchConsole(page);await page.goto(LOCAL);
   await page.evaluate(()=>localStorage.clear());await page.reload();
   await expect(page.locator('#me')).toContainText('plane ready');
@@ -58,10 +59,9 @@ test('full fold, trim, release, event and reveal loop works locally',async({page
 
   await page.locator('[data-tab="wings"]').click();
   await expect(page.locator('#wingSpec')).toContainText('Wingspan');
-  await page.locator('[data-tab="trim"]').click();
-  await page.locator('#papers button[aria-label="paper blue"]').click();
-
   await page.locator('[data-tab="go"]').click();
+  await expect(page.locator('#goTitle')).toHaveText('White plane');
+  await page.locator('#papers button[aria-label="paper blue"]').click();
   await expect(page.locator('#goTitle')).toHaveText('Blue plane');
   await expect(page.locator('#goHint')).toContainText('saved in this browser');
   await page.locator('#release').click();
