@@ -17,10 +17,17 @@
 
 import {createLocalStore} from './local.js';
 
+// Local development only: `?emulator` on localhost uses the Firebase emulators (npm run emulators).
+function emulatorSetup(){const local=/^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  if(!local||!new URLSearchParams(location.search).has('emulator'))return null;
+  return{config:{apiKey:'demo-key',authDomain:'demo-one-sheet.firebaseapp.com',projectId:'demo-one-sheet',appId:'1:1:web:1'},
+    opts:{authEmulator:'http://127.0.0.1:9099',firestoreEmulator:{host:'127.0.0.1',port:8085}}};}
+
 export async function openStore(){
   try{
-    const {firebaseConfig}=await import('./firebase-config.js');
-    if(firebaseConfig){const {createFirebaseStore}=await import('./firebase.js');const s=createFirebaseStore(firebaseConfig);const info=await s.connect();return{store:s,info};}
+    const emu=emulatorSetup();
+    const {firebaseConfig}=emu?{firebaseConfig:emu.config}:await import('./firebase-config.js');
+    if(firebaseConfig){const {createFirebaseStore}=await import('./firebase.js');const s=createFirebaseStore(firebaseConfig,emu?emu.opts:{});const info=await s.connect();return{store:s,info};}
   }catch(e){console.warn('Shared field unavailable, playing locally.',e&&e.message);}
   const s=createLocalStore();const info=await s.connect();return{store:s,info};
 }

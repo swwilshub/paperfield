@@ -25,9 +25,9 @@ Goal: the prototype split into ES modules, working without a backend, live on Pa
 
 Goal: a shared persistent field for anyone with the link.
 
-1. Use the Firebase modular SDK from the gstatic CDN, with a pinned version. Sign in anonymously. On first visit, ask for a nickname (2–20 characters) and store it on the pilot doc.
+1. Use the Firebase modular SDK from the gstatic CDN, with a pinned version. Sign in anonymously. *(Changed: no nickname prompt. Pilot names are generated from the uid, so players type nothing.)*
 2. Set up the data model:
-   - **`pilots/{uid}`**: `{nick, score, planes, last, lastPlane, pbDist, pbTime}`.
+   - **`pilots/{uid}`**: `{score, planes, last, lastPlane, pbDist, pbTime}`.
    - **`planes/{id}`**: the prototype's plane doc fields plus `uid`.
 
    Use a top-level `planes` collection, so one query feeds the field.
@@ -44,7 +44,7 @@ Goal: a shared persistent field for anyone with the link.
 
 ## M3: Rules enforced by the database (about 3 h)
 
-Goal: the hourly limit, ownership and doc shape are checked by Firestore, not just the browser.
+Goal: the throw limit, ownership and doc shape are checked by Firestore, not just the browser. *(Mostly done early, with M2: `firestore.rules` + `tests/rules.test.js`. The limit is now activity-based (`src/net/cooldown.js`); rules enforce its 2-minute floor, since rules can't count documents. Remaining: enforce the full dynamic limit, e.g. via per-10-minute stats docs updated in the throw batch.)*
 
 1. Write `firestore.rules`. The sketch below is a starting point only, not verified; the emulator tests decide.
    ```

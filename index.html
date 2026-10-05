@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>One Sheet: the paper plane field</title>
-<meta name="description" content="Fold one A4 paper plane an hour, pick your paper and let it go. Every plane ever thrown stays where it landed.">
+<meta name="description" content="Fold an A4 paper plane, pick your paper and let it go. Every plane ever thrown stays where it landed.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M2 16 30 4 20 28 15 18Z' fill='%23FFE45C' stroke='%2315243A' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
@@ -17,13 +17,13 @@
 <body>
 <main>
  <div class="top">
-  <div><h1>One Sheet</h1><p class="sub" style="margin:0">Fold one A4 plane an hour. Pick your paper. Let it go. Every plane ever thrown stays where it landed.</p></div>
+  <div><h1>One Sheet</h1><p class="sub" style="margin:0">Fold an A4 plane. Pick your paper. Let it go. Every plane ever thrown stays where it landed.</p></div>
   <div class="chip" id="me">Connecting…</div>
  </div>
 
  <div id="worldWrap">
   <canvas id="world" aria-label="3D field of every plane thrown so far. Drag to look around, pinch or scroll to zoom, tap a plane to inspect it."></canvas>
-  <div class="hud"><div class="ticker" id="ticker">Loading the field…</div><div class="hudr"><button class="hudbtn" id="music" type="button" aria-pressed="true">Music on</button><button class="hudbtn" id="home" type="button">Recentre</button></div></div>
+  <div class="hud"><div class="ticker" id="ticker">Loading the field…</div><div class="hudr"><button class="hudbtn" id="home" type="button">Recentre</button></div></div>
   <div id="eventInfo"></div><div id="callout" aria-live="polite"></div><button class="hudbtn" id="skip" type="button" hidden>Skip</button>
   <div id="toast" hidden></div><div id="reveal" hidden role="dialog" aria-label="Flight results"></div>
   <div id="empty" hidden>No planes yet. Be the first to fold one.</div>
@@ -113,7 +113,7 @@
   <h2 id="howH">How it scores</h2>
   <details><summary>Points</summary><p>Every flight earns 1 point per metre plus 3 points per second in the air. A personal best in distance or hang time adds 20. Setting a field record for farthest, longest aloft, highest or most loops adds 100 (50 for loops). Beating a real Guinness record adds 500.</p></details>
   <details><summary>Physics</summary><p>Your creases are applied to the paper exactly: every layer on the folding side is mirrored across the crease. The finished stack is measured at 2 mm resolution to find the wing area, span, layer thickness, balance point and inertia. A 2D flight model then handles lift, drag, stall, elevator, pitching and tumbling every 3 ms. Wings flutter above a speed set by their layers and span, so flimsy planes are thrown softer. Roll and yaw aren't modelled, which is why folds are always mirrored.</p></details>
-  <details><summary>Fairness</summary><p>Everyone gets the same thrower and the same size of random wobble. The wobble is seeded from the plane, so everyone watching sees the same three throws. One plane per person per hour.</p></details>
+  <details><summary>Fairness</summary><p>Everyone gets the same thrower and the same size of random wobble. The wobble is seeded from the plane, so everyone watching sees the same three throws. Planes are rationed by how busy the field is: when it's quiet you can throw every few minutes; when lots of pilots are throwing, it stretches towards one an hour.</p></details>
  </section>
 </main>
 <div id="busy">Folding your plane…</div>

@@ -3,7 +3,7 @@ import {applyFolds} from '../core/folds.js';
 
 export const $=id=>document.getElementById(id);
 export const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-export const HOUR=3600e3,SCALE=8,GUIN={dist:88.318,time:29.2};
+export const SCALE=8,GUIN={dist:88.318,time:29.2};
 export const PAPERS=['#FFFFFF','#FFF3B0','#CDE7FF','#FFD6DE','#D6F5DF','#E6E0FF'];
 // Only these colours are ever shown, whatever a stored plane says.
 export const paperOf=p=>PAPERS.includes(p&&p.paper)?p.paper:'#FFFFFF';

@@ -25,10 +25,27 @@ jobs:
       - name: Smoke test (local server, phone viewport)
         run: npx playwright test
 
+  firebase:
+    # Security rules, the Firebase adapter and a two-browser multiplayer test, on the emulators.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci && npx playwright install --with-deps chromium
+      - name: Rules, adapter and multiplayer tests (emulators)
+        run: npm run test:emulator
+
   deploy:
     # Deploy from main, or from whatever branch is the repo default (today the only branch).
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
-    needs: test
+    needs: [test, firebase]
     runs-on: ubuntu-latest
     permissions:
       pages: write

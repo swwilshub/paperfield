@@ -3,12 +3,17 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/physics.test.js tests/music.test.js",
+    "test": "node --test tests/physics.test.js tests/music.test.js tests/cooldown.test.js",
     "golden": "node tools/run-legacy.cjs",
     "serve": "python3 -m http.server 8080",
-    "music": "python3 tools/build-music.py"
+    "music": "python3 tools/build-music.py",
+    "test:emulator": "firebase emulators:exec --only firestore,auth --project demo-one-sheet \"node --test --test-concurrency=1 tests/rules.test.js tests/firebase.test.js && npx playwright test tests/multiplayer.spec.js\"",
+    "emulators": "firebase emulators:start --only firestore,auth --project demo-one-sheet"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1"
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@playwright/test": "^1.56.1",
+    "firebase": "12.19.0",
+    "firebase-tools": "^15.32.1"
   }
 }

@@ -1,0 +1,78 @@
+rules_version = '2';
+
+// One Sheet. Tested in tests/rules.test.js against the Firestore emulator.
+//
+// A throw is one batch: create planes/{id} and update pilots/{uid} together. Each side checks
+// the other with getAfter(), so neither can be written alone. What the rules can't check:
+// the flight itself (points, distance) is computed in the browser, so points are only capped.
+// The busy-field throw limit (src/net/cooldown.js) needs document counts, which rules can't do,
+// so only its 2-minute floor is enforced here.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    function isNum(v) { return v is int || v is float; }
+    function inRange(v, lo, hi) { return isNum(v) && v >= lo && v <= hi; }
+    function planePath(id) { return /databases/$(database)/documents/planes/$(id); }
+    function pilotPath(uid) { return /databases/$(database)/documents/pilots/$(uid); }
+
+    function planeKeys() {
+      return ['uid', 'at', 'W', 'L', 'folds', 'hT', 'hN', 'dih', 'delta', 'style', 'gsm', 'paper',
+              'heading', 'roll', 'tr', 'points', 'throws', 'official', 'V', 'gamma', 'semi', 'yTip',
+              'yMin', 'sCG', 'SM', 'Vcap', 'dist', 'time', 'maxZ', 'loops'];
+    }
+    // Planes carry no player-written text or images: exact keys, palette colours, bounded numbers.
+    function validPlane(d) {
+      return d.keys().hasOnly(planeKeys()) && d.keys().hasAll(planeKeys())
+        && d.uid == request.auth.uid
+        && d.at == request.time
+        && ((d.W == 210 && d.L == 297) || (d.W == 297 && d.L == 210))
+        && d.folds is list && d.folds.size() <= 28
+        && d.tr is list && d.tr.size() >= 8 && d.tr.size() <= 1000
+        && d.throws is list && d.throws.size() == 3
+        && d.official in [0, 1, 2]
+        && d.paper in ['#FFFFFF', '#FFF3B0', '#CDE7FF', '#FFD6DE', '#D6F5DF', '#E6E0FF']
+        && d.style in ['far', 'float']
+        && d.gsm in [80, 100]
+        && d.points is int && d.points >= 0 && d.points <= 1500
+        && inRange(d.dist, 0, 500) && inRange(d.time, 0, 60) && inRange(d.maxZ, 0, 200)
+        && d.loops is int && d.loops >= 0 && d.loops <= 50
+        && inRange(d.hT, 0, 150) && inRange(d.hN, 0, 150)
+        && inRange(d.dih, -10, 25) && inRange(d.delta, -15, 35)
+        && inRange(d.heading, -40, 40) && inRange(d.roll, -90, 90);
+    }
+
+    match /planes/{id} {
+      allow read: if true;
+      allow create: if signedIn()
+        && validPlane(request.resource.data)
+        && getAfter(pilotPath(request.auth.uid)).data.lastPlane == id;
+      allow delete: if isAdmin();
+    }
+
+    match /pilots/{uid} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['score', 'planes', 'last', 'lastPlane', 'pbDist', 'pbTime'])
+        && request.resource.data.last == request.time
+        // 2-minute floor between throws
+        && (resource == null || request.time > resource.data.last + duration.value(2, 'm'))
+        // the plane named in lastPlane is new in this same batch, and is ours
+        && !exists(planePath(request.resource.data.lastPlane))
+        && getAfter(planePath(request.resource.data.lastPlane)).data.uid == uid
+        // the score and plane count go up by exactly this plane
+        && request.resource.data.planes == (resource == null ? 0 : resource.data.planes) + 1
+        && request.resource.data.score == (resource == null ? 0 : resource.data.score)
+             + getAfter(planePath(request.resource.data.lastPlane)).data.points
+        && inRange(request.resource.data.pbDist, 0, 500) && inRange(request.resource.data.pbTime, 0, 60);
+      allow delete: if isAdmin();
+    }
+
+    // Admins are added by hand in the Firebase console; nobody can write them from the app.
+    match /admins/{uid} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

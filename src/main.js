@@ -14,10 +14,9 @@ app.audio=audio;
 // Until three.js has loaded, releases still score and reveal; the plane just isn't shown flying.
 app.world={add(){},focus(){},event(p,o){if(o&&o.onLand)o.onLand();},busy:()=>false,end(){}};
 
-// ===== music toggle =====
-function musicLabel(){$('music').textContent=audio.isOn()?'Music on':'Music off';$('music').setAttribute('aria-pressed',audio.isOn());}
-$('music').onclick=()=>{audio.unlock();audio.toggle();musicLabel();};musicLabel();
-document.addEventListener('pointerdown',()=>audio.unlock(),{once:true});
+// ===== music =====
+// Always on. Browsers only allow sound after a user gesture, so it starts on the first one.
+for(const t of ['pointerdown','keydown'])document.addEventListener(t,()=>audio.unlock(),{once:true});
 
 // ===== network =====
 async function connect(){

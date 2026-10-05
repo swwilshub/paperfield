@@ -5,20 +5,19 @@
 // to the song's key (B♭ major). Seeded per plane so everyone watching a throw hears the same thing.
 import {createMixer} from './mixer.js';
 
-export const audio=(function(){let ctx=null,master,music,sfx,rev,mixer=null,on=true,stage='idle',landT=null;
-  try{const v=localStorage.getItem('onesheet-music');if(v==='off')on=false;}catch(e){}
+export const audio=(function(){let ctx=null,master,music,sfx,rev,mixer=null,stage='idle',landT=null;
   const tele={alt:0,speed:0,vz:0};
   const mtof=m=>440*Math.pow(2,(m-69)/12);
   const R=46; // B♭2: the song's tonic
-  function unlock(){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!ctx){ctx=new AC();const comp=ctx.createDynamicsCompressor();master=ctx.createGain();master.gain.value=on?0.9:0;master.connect(comp);comp.connect(ctx.destination);
+  function unlock(){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!ctx){ctx=new AC();const comp=ctx.createDynamicsCompressor();master=ctx.createGain();master.gain.value=0.9;master.connect(comp);comp.connect(ctx.destination);
       music=ctx.createGain();music.gain.value=1.3;music.connect(master);sfx=ctx.createGain();sfx.gain.value=0.6;sfx.connect(master);
       rev=ctx.createConvolver();const len=Math.floor(ctx.sampleRate*2.6),buf=ctx.createBuffer(2,len,ctx.sampleRate);for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3.2);}
       rev.buffer=buf;const rg=ctx.createGain();rg.gain.value=0.32;rev.connect(rg);rg.connect(sfx);
-      mixer=createMixer(ctx,music);mixer.setMood(stage);if(on)mixer.start();
+      mixer=createMixer(ctx,music);mixer.setMood(stage);mixer.start();
       setInterval(()=>{if(mixer&&mixer.mood==='fly')mixer.tele(tele.speed,tele.alt);},150);
       document.addEventListener('visibilitychange',()=>{if(!ctx)return;document.hidden?ctx.suspend():ctx.resume();});}
     if(ctx.state==='suspended')ctx.resume();}
-  const live=()=>ctx&&on;
+  const live=()=>!!ctx;
   function out(g,send){g.connect(sfx);if(send){const s=ctx.createGain();s.gain.value=send;g.connect(s);s.connect(rev);}}
   function tone(type,freq,t,dur,vol,cut,send,att){const o=ctx.createOscillator();o.type=type;o.frequency.value=freq;const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=cut||3000;const g=ctx.createGain();
     g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+(att||0.008));g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(f);f.connect(g);out(g,send==null?0.35:send);o.start(t);o.stop(t+dur+0.05);}
@@ -27,9 +26,7 @@ export const audio=(function(){let ctx=null,master,music,sfx,rev,mixer=null,on=t
     s.connect(f);f.connect(g);out(g,send||0.15);s.start(t,Math.random()*0.5);s.stop(t+dur+0.05);}
   function thud(t,vol){const o=ctx.createOscillator();o.frequency.setValueAtTime(90,t);o.frequency.exponentialRampToValueAtTime(32,t+0.18);const g=ctx.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.7);o.connect(g);out(g,0.05);o.start(t);o.stop(t+0.8);}
   function mood(m,o){if(mixer)mixer.setMood(m,o);}
-  const api={tele,unlock,isOn:()=>on,
-    toggle(){on=!on;try{localStorage.setItem('onesheet-music',on?'on':'off');}catch(e){}
-      if(ctx){master.gain.setTargetAtTime(on?0.9:0,ctx.currentTime,0.08);if(on)mixer.start();else setTimeout(()=>{if(!on)mixer.stop();},400);}return on;},
+  const api={tele,unlock,
     // Building progress: 'fold' | 'wings' | 'trim' | 'go'. Layers come in as the plane takes shape.
     stage(t){stage=t;if(!mixer||['count','fly','land'].includes(mixer.mood))return;mood(t);},
     countdown(seed){if(mixer)mixer.reseed(seed);mood('count',{quick:true,jump:true,jumpTo:'fly'});if(!live())return;const t=ctx.currentTime+0.02;

@@ -1,17 +1,22 @@
 // ===== release =====
-import {S,$,net,app,HOUR,GUIN,esc,spec,reduceMotion,planeLabel} from './state.js';
-import {throwPlane,mulberry,hashStr} from '../core/thrower.js';
+import {S,$,net,app,esc,spec,reduceMotion,planeLabel} from './state.js';
+import {cooldownLeft,fieldActivity,waitMs} from '../net/cooldown.js';
+import {throwPlane} from '../core/thrower.js';
+import {planeDoc,results,scorePoints} from '../net/planedoc.js';
 import {geometry} from '../core/geometry.js';
 import {renderBoard,updateMe} from './board.js';
 
 export function myPilot(){return net.uid?net.pilots[net.uid]:null;}
-export function cooldown(){const p=myPilot();if(!p||!p.last)return 0;return Math.max(0,p.last+HOUR-Date.now());}
+export function cooldown(){const p=myPilot();return cooldownLeft(p&&p.last,net.planes.values(),Date.now());}
+// One line on why the wait is what it is.
+export function fieldLine(){const a=fieldActivity(net.planes.values(),Date.now());const w=Math.round(waitMs(a)/60e3);
+  return `${a.pilots} pilot${a.pilots===1?'':'s'} this hour, ${a.airborne} plane${a.airborne===1?'':'s'} in the air: ${w} min between planes.`;}
 export function fmtWait(ms){const m=Math.ceil(ms/60000);return m>=60?'1 h':m+' min';}
 export function renderGo(){const cd=cooldown();const G=geometry(spec(),2);
   $('goTitle').textContent=planeLabel(S)+(G.noWing?' (no wings)':'');
   let hint='';if(net.canWrite===false)hint='You can watch the field but not add to it. You can still throw a plane here; it won\'t be saved.';
   else if(!net.store)hint='Not connected to the shared field, so this plane will fly here but won\'t be saved.';
-  else if(cd>0&&net.limit)hint=`Your next plane is ready in ${fmtWait(cd)}. Keep folding; it'll be waiting.`;
+  else if(cd>0&&net.limit)hint=`Your next plane is ready in ${fmtWait(cd)}. Keep folding; it'll be waiting. (${fieldLine()})`;
   else if(net.mode==='local')hint='Playing locally: your planes are saved in this browser only.';
   $('goHint').textContent=hint;$('release').disabled=cd>0&&limited();}
 function limited(){return !!net.store&&net.canWrite!==false&&net.limit;}
@@ -23,21 +28,9 @@ async function release(){app.audio.unlock();if(releasing||(cooldown()>0&&limited
 async function doRelease(){$('busy').style.display='grid';await new Promise(r=>setTimeout(r,60));
   const id=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);const sp=spec();let R;
   try{R=throwPlane(sp,id);}catch(e){$('busy').style.display='none';$('goHint').textContent='Something went wrong simulating that plane: '+e.message;return;}
-  const G=R.G,o=R.throws[R.official];const rnd=mulberry(hashStr(id+'pose'));
-  const tr=o.r.tr;const step=Math.max(1,Math.ceil(tr.length/220));const flat=[];for(let i=0;i<tr.length;i+=step){const q=tr[i];flat.push(Math.round(q[0]*100)/100,Math.round(q[1]*100)/100,Math.round(q[2]*100)/100,Math.round(q[3]*1000)/1000);}
-  const q=tr[tr.length-1];if((tr.length-1)%step){flat.push(Math.round(q[0]*100)/100,Math.round(q[1]*100)/100,Math.round(q[2]*100)/100,Math.round(q[3]*1000)/1000);}
-  const res={dist:Math.round(o.r.dist*10)/10,time:Math.round(o.r.time*10)/10,maxZ:Math.round(o.r.maxZ*10)/10,loops:o.r.loops};
-  // points
-  const rec=records(null);const me=myPilot()||{};const pts=[['Distance',Math.round(res.dist)],['Hang time',Math.round(3*res.time)]];
-  if(res.dist>(me.pbDist||0)&&me.planes)pts.push(['Personal best distance',20]);if(res.time>(me.pbTime||0)&&me.planes)pts.push(['Personal best hang time',20]);
-  if(!rec.dist||res.dist>rec.dist.dist)pts.push(['Field record: farthest',100]);if(!rec.time||res.time>rec.time.time)pts.push(['Field record: longest aloft',100]);
-  if(!rec.maxZ||res.maxZ>rec.maxZ.maxZ)pts.push(['Field record: highest',100]);if(res.loops>0&&(!rec.loops||res.loops>rec.loops.loops))pts.push(['Field record: most loops',50]);
-  if(res.dist>GUIN.dist)pts.push(['Beat the Guinness distance record',500]);if(res.time>GUIN.time)pts.push(['Beat the Guinness time record',500]);
-  const total=pts.reduce((s,p)=>s+p[1],0);
-  const doc=Object.assign({uid:net.uid||'local',at:Date.now(),W:S.W,L:S.L,folds:S.folds,hT:S.hT,hN:S.hN,dih:S.dih,delta:S.elev,style:S.style,gsm:S.gsm,paper:S.paper,
-    heading:Math.round((rnd()*70-35)*10)/10,roll:Math.round((rnd()<0.5?-1:1)*(55+rnd()*25)),tr:flat,points:total,
-    throws:R.throws.map(t=>[Math.round(t.r.dist*10)/10,Math.round(t.r.time*10)/10]),official:R.official,V:Math.round(o.L.V*10)/10,gamma:Math.round(o.L.gamma*10)/10,
-    semi:Math.round(G.semi*10)/10,yTip:Math.round(G.yTip*10)/10,yMin:Math.round(G.yMin*10)/10,sCG:Math.round(G.sCG*10)/10,SM:Math.round(G.SM*1000)/1000,Vcap:Math.round(R.aero.Vcap*10)/10},res);
+  const res=results(R);const rec=records(null);const me=myPilot()||{};
+  const pts=scorePoints(res,me,rec);const total=pts.reduce((s,p)=>s+p[1],0);
+  const doc=planeDoc(id,net.uid||'local',S,R,total,Date.now());
   let saved=false,saveErr='';
   if(net.store&&net.uid&&net.canWrite!==false){try{
       const body={score:(me.score||0)+total,planes:(me.planes||0)+1,last:doc.at,pbDist:Math.max(me.pbDist||0,res.dist),pbTime:Math.max(me.pbTime||0,res.time)};

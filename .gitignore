@@ -4,3 +4,6 @@ playwright-report/
 .env
 *.serviceAccount*.json
 music-preview.mp3*
+firestore-debug.log
+firebase-debug.log
+.firebase/

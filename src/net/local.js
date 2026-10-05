@@ -1,8 +1,11 @@
 // Local store: keeps the field in memory and, when it can, in localStorage.
 // Used when there is no backend (M1) or the backend is unreachable.
-// `?nolimit` in the URL turns off the hourly cooldown for local testing.
+// `?nolimit` in the URL turns off the throw limit for local testing.
 
-const KEY='onesheet-local-v1',HOUR=3600e3;
+import {cooldownLeft} from './cooldown.js';
+import {pilotName} from './pilots.js';
+
+const KEY='onesheet-local-v1';
 
 function readLS(){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null;}catch(e){return null;}}
 function writeLS(d){localStorage.setItem(KEY,JSON.stringify(d));}
@@ -30,10 +33,10 @@ export function createLocalStore(){
     onPlanes(cb){planeSubs.add(cb);queueMicrotask(()=>cb({added:withIds(data.planes),initial:true}));return()=>planeSubs.delete(cb);},
     async savePlane(id,doc,pilot){
       const prev=data.pilots[data.uid];
-      if(limit&&prev&&prev.last&&Date.now()<prev.last+HOUR){const e=new Error('One plane an hour.');e.code='cooldown';throw e;}
-      const next=Object.assign({},data,{planes:data.planes.concat([Object.assign({id,pid:data.uid},doc)]),pilots:Object.assign({},data.pilots,{[data.uid]:Object.assign({nick:'You'},pilot)})});
+      if(limit&&prev&&cooldownLeft(prev.last,data.planes,Date.now())>0){const e=new Error('Your next plane is not ready yet.');e.code='cooldown';throw e;}
+      const next=Object.assign({},data,{planes:data.planes.concat([Object.assign({id,pid:data.uid},doc)]),pilots:Object.assign({},data.pilots,{[data.uid]:Object.assign({lastPlane:id},pilot)})});
       if(persist)try{writeLS(next);}catch(err){const e=new Error('Local storage is full.');e.code='quota_exceeded';throw e;}
       data=next;emitPilots();},
-    nameOf(uid){const p=data.pilots[uid];return p&&p.nick||'';}
+    nameOf(uid){return pilotName(uid);}
   };
 }
