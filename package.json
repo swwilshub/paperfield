@@ -1,0 +1,10 @@
+{
+  "name": "one-sheet",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/physics.test.js",
+    "golden": "node tools/run-legacy.cjs",
+    "serve": "python3 -m http.server 8080"
+  }
+}
