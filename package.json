@@ -6,5 +6,8 @@
     "test": "node --test tests/physics.test.js",
     "golden": "node tools/run-legacy.cjs",
     "serve": "python3 -m http.server 8080"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
   }
 }
