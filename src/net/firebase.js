@@ -8,7 +8,7 @@ import {pilotName} from './pilots.js';
 
 export const SDK_VERSION='12.19.0';
 const CDN=`https://www.gstatic.com/firebasejs/${SDK_VERSION}/`;
-const PLANES_LIMIT=500,PILOTS_LIMIT=50,CONNECT_TIMEOUT=10e3,SAVE_TIMEOUT=12e3;
+const PLANES_LIMIT=500,PILOTS_LIMIT=50,CONNECT_TIMEOUT=12e3,SAVE_TIMEOUT=12e3;
 
 const withTimeout=(p,ms,what)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error(what+' timed out'),{code:'timeout'})),ms))]);
 const millis=v=>v&&typeof v.toMillis==='function'?v.toMillis():(typeof v==='number'?v:Date.now());
@@ -26,16 +26,22 @@ export function createFirebaseStore(config,opts){opts=opts||{};
     out.code=c==='permission-denied'?'permission_denied':c==='resource-exhausted'?'quota_exceeded':c||'error';return out;};
 
   return{
-    async connect(){
-      F=opts.sdk||await withTimeout(loadSdk(),CONNECT_TIMEOUT,'Loading Firebase');
+    // One overall deadline, so a blocked or misconfigured backend falls back to local play quickly.
+    connect(){return withTimeout(this._connect(),CONNECT_TIMEOUT,'Connecting to Firebase');},
+    async _connect(){
+      F=opts.sdk||await loadSdk();
       const app=F.app.initializeApp(config,opts.appName);
-      const auth=F.auth.getAuth(app);
+      // initializeAuth without a popup/redirect resolver: anonymous sign-in only, so the browser
+      // doesn't load Firebase's auth helper iframe (and its extra requests). Tests use getAuth.
+      const auth=opts.sdk?F.auth.getAuth(app):F.auth.initializeAuth(app,{persistence:[F.auth.indexedDBLocalPersistence,F.auth.browserLocalPersistence]});
       if(opts.authEmulator)F.auth.connectAuthEmulator(auth,opts.authEmulator,{disableWarnings:true});
       // Keep a local copy so return visits only fetch what changed; fall back to memory if IndexedDB is unavailable.
       try{db=F.fs.initializeFirestore(app,opts.firestoreEmulator?{}:{localCache:F.fs.persistentLocalCache({tabManager:F.fs.persistentMultipleTabManager()})});}
       catch(e){db=F.fs.getFirestore(app);}
       if(opts.firestoreEmulator)F.fs.connectFirestoreEmulator(db,opts.firestoreEmulator.host,opts.firestoreEmulator.port);
-      const user=auth.currentUser||(await withTimeout(F.auth.signInAnonymously(auth),CONNECT_TIMEOUT,'Signing in')).user;
+      // Wait for a saved session to be restored first, so a returning pilot keeps their identity.
+      await auth.authStateReady();
+      const user=auth.currentUser||(await F.auth.signInAnonymously(auth)).user;
       uid=user.uid;
       // Our own pilot doc, which may not be in the top-50 leaderboard query.
       F.fs.onSnapshot(F.fs.doc(db,'pilots',uid),s=>{mine=s.exists()?Object.assign({},s.data({serverTimestamps:'estimate'}),{last:millis(s.data({serverTimestamps:'estimate'}).last)}):null;emitPilots();},()=>{});

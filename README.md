@@ -80,7 +80,8 @@ reached, the game falls back to local play.
    ```
    Commit and push; Pages redeploys. The web config isn't secret (the rules protect the data), so it's fine in the repo.
 8. **Optional, recommended.** Google Cloud console → *APIs & Services → Credentials* → the "Browser key"
-   → *Application restrictions: Websites* → add `https://swwilshub.github.io/*` (and `http://localhost:8080/*` for local testing).
+   → *Application restrictions: Websites* → add `https://swwilshub.github.io/*` and `https://paperfield-ab53c.firebaseapp.com/*`
+   (Firebase's own auth domain; plus `http://localhost:8080/*` for local testing).
 9. **Admin (for removing planes).** Play once on the live site, then Firebase console → Authentication →
    *Users*: copy your user UID. Firestore → *Start collection* `admins` → document ID = that UID, no fields needed.
 

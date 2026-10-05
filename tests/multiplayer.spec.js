@@ -30,5 +30,11 @@ test('a throw by one player appears live for another',async({browser,playwright}
   await B.page.reload();await expect(B.page.locator('#ticker')).toContainText('Green plane',{timeout:20e3});
   await A.page.locator('#rvClose').click();await A.page.locator('[data-tab="go"]').click();
   await expect(A.page.locator('#release')).toBeDisabled();
+
+  // A reload keeps the same anonymous pilot: same points, still rate-limited.
+  const chip=(await A.page.locator('#me').textContent()).trim();
+  expect(chip).toMatch(/^[1-9]\d* pts/);
+  await A.page.reload();
+  await expect(A.page.locator('#me')).toHaveText(new RegExp('^'+chip.split(' · ')[0]+' · next plane in'),{timeout:20e3});
   expect(A.errs).toEqual([]);expect(B.errs).toEqual([]);
 });
