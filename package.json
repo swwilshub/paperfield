@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/physics.test.js",
+    "test": "node --test tests/physics.test.js tests/music.test.js",
     "golden": "node tools/run-legacy.cjs",
-    "serve": "python3 -m http.server 8080"
+    "serve": "python3 -m http.server 8080",
+    "music": "python3 tools/build-music.py"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"

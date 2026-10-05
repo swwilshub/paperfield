@@ -18,13 +18,34 @@ To reset the local field, run `localStorage.removeItem('onesheet-local-v1')` in 
 ## Tests
 
 ```sh
-npm test               # physics golden tests (node --test), no install needed
+npm test               # physics golden tests and music sequencer tests (node --test), no install needed
 npm ci && npx playwright install chromium
 npx playwright test    # smoke: page loads with no console errors; full fold → trim → release → reveal loop on a phone viewport
 BASE_URL=https://<user>.github.io/paperfield/ npx playwright test -g "no console errors"   # check the live site
 ```
 
 `tests/golden.json` is produced **only** from the legacy file: `npm run golden` runs the prototype's physics core in Node on the specs in `tests/fixtures/specs.json`. The port must match it to 0.01 and, in the same runtime, bit for bit. Changing physics means regenerating the golden file and writing down why.
+
+## Music
+
+"Fade to Wind" by palettedisk, played as nine stems by a dynamic mixer:
+
+- **Progressive layers.** Each stage sets a level per stem. The idle field is felt piano, pads and wind. Folding, wings, trim and release bring in strings, guitar, bass and percussion. The countdown builds, the throw brings in the full band (drums and percussion follow speed, brass and strings follow height), the landing swells, then it settles back.
+- **Generated as it plays.** The song is cut into 8-bar phrases (120 BPM, 2 s bars). At each phrase end the sequencer picks the next one at random from those that fit harmonically after the current bar, weighted to suit the stage and away from recent phrases, so the arrangement never repeats exactly. A throw jumps to a fitting full-band phrase at the next bar line. It is seeded by plane, so everyone watching a throw hears the same arrangement.
+- **Light on phones.** Only the phrases about to play are fetched (about 0.5–1 MB each) and decoded at 32 kHz; at most three are kept.
+
+Rebuild the phrase files from the stems zip (needs ffmpeg and numpy):
+
+```sh
+python3 tools/build-music.py Fade_to_Wind_Stems.zip assets/music
+```
+
+Listen to a scripted session (idle → fold → wings → trim → release → throw → land → idle) rendered offline through the real mixer:
+
+```sh
+python3 -m http.server 8090 &
+node tools/preview-music.mjs music-preview.mp3
+```
 
 ## Deploy (GitHub Pages)
 
@@ -39,7 +60,8 @@ index.html              markup; loads styles/main.css and src/main.js
 src/core/               physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
 src/ui/                 state.js (shared state), tabs, fold, wings, trim, shapes (plane outlines), release, board
 src/world/              scene.js (renderer, camera, loop), planes.js (meshes, picking), event.js (throw replay)
-src/audio/music.js      procedural music
+src/audio/              music.js (API, sound effects), mixer.js (stem player), sequencer.js (generative arrangement)
+assets/music/           phrase files + manifest.json (generated; see Music)
 src/net/                store.js (adapter interface), local.js, firebase.js (M2), firebase-config.js
 tests/                  physics.test.js, golden.json, fixtures/specs.json, smoke.spec.js
 tools/run-legacy.cjs    regenerates golden.json from the legacy file

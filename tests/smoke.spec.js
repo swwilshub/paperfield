@@ -38,12 +38,16 @@ test('full fold, trim, release, event and reveal loop works locally',async({page
   await page.evaluate(()=>localStorage.clear());await page.reload();
   await expect(page.locator('#me')).toContainText('plane ready');
 
+  // Music starts on the first interaction: the manifest, then the first phrase's stems.
+  const musicReq=page.waitForRequest(r=>/assets\/music\/p\d\d-\w+\.mp3$/.test(r.url()),{timeout:15e3});
+
   // Fold the top-left corner to the centre line; the mirror fold is added automatically.
   await page.locator('#foldSvg').scrollIntoViewIfNeeded();
   await drag(page,await sheetToClient(page,105,297),await sheetToClient(page,0,192));
   await expect(page.locator('#pendingBtns')).toBeVisible();
   await page.locator('#doFold').click();
   await expect(page.locator('#foldCount')).toHaveText('1 crease so far.');
+  await musicReq;
 
   await page.locator('[data-tab="wings"]').click();
   await expect(page.locator('#wingSpec')).toContainText('Wingspan');
