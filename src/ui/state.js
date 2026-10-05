@@ -4,9 +4,13 @@ import {applyFolds} from '../core/folds.js';
 export const $=id=>document.getElementById(id);
 export const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 export const HOUR=3600e3,SCALE=8,GUIN={dist:88.318,time:29.2};
-export const INKS=['#15243A','#D2423A','#2D63C8','#1E8A5A','#F2A41C','#8A3FB8','#FFFFFF'];
 export const PAPERS=['#FFFFFF','#FFF3B0','#CDE7FF','#FFD6DE','#D6F5DF','#E6E0FF'];
-export const S={orient:'portrait',W:210,L:297,folds:[],actions:[],pending:null,drag:null,hN:15,hT:25,elev:6,dih:5,style:'far',gsm:80,paper:'#FFFFFF',ink:INKS[0],brush:0.022,strokes:[]};
+// Only these colours are ever shown, whatever a stored plane says.
+export const paperOf=p=>PAPERS.includes(p&&p.paper)?p.paper:'#FFFFFF';
+export const PAPER_NAMES=['White','Yellow','Blue','Pink','Green','Lilac'];
+// Planes have no player-written names: they are labelled by paper colour. Any stored `name` is ignored.
+export const planeLabel=p=>PAPER_NAMES[PAPERS.indexOf(paperOf(p))]+' plane';
+export const S={orient:'portrait',W:210,L:297,folds:[],actions:[],pending:null,drag:null,hN:15,hT:25,elev:6,dih:5,style:'far',gsm:80,paper:'#FFFFFF'};
 // Mirror of what the store has told us. `store` is the adapter (src/net/store.js).
 export const net={store:null,uid:null,mode:null,canWrite:null,limit:true,pilots:{},planes:new Map(),loaded:false,ready:false};
 // Late-bound modules, so sections can call each other without import cycles.

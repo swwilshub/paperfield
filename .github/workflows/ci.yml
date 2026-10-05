@@ -17,10 +17,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - run: npm ci
       - name: Physics golden tests
-        run: node --test tests/physics.test.js
+        run: npm test
       - name: Install Playwright
-        run: npm ci && npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium
       - name: Smoke test (local server, phone viewport)
         run: npx playwright test
 

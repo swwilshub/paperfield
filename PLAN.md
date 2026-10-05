@@ -17,7 +17,7 @@ Goal: the prototype split into ES modules, working without a backend, live on Pa
 **Done when:**
 - The golden tests pass.
 - The Pages URL loads with no console errors.
-- A full fold → draw → release → event → reveal loop works in local mode on a phone.
+- A full fold → trim → release → event → reveal loop works in local mode on a phone.
 
 ---
 
@@ -67,9 +67,9 @@ Goal: the hourly limit, ownership and doc shape are checked by Firestore, not ju
    ```
 2. Validate the plane doc's shape:
    - `keys().hasOnly([...])`
-   - `name` up to 28 characters
    - `folds` up to 28 entries
-   - `img` is a string under 150 000 characters
+   - no `name` or `img` keys (planes carry no user-written content)
+   - `paper` is one of the six palette colours
    - `points` between 0 and 1500
    - `tr` up to 1000 numbers
 3. Add an admin role: an `admins/{uid}` doc, readable by everyone and writable only from the console. Admins can delete or hide planes.
@@ -91,7 +91,7 @@ Goal: the hourly limit, ownership and doc shape are checked by Firestore, not ju
 
 Goal: the game stays smooth with 1 000+ planes on a mid-range phone.
 
-1. Split each plane into a light `planes/{id}` doc (pose and stats) and an `art/{id}` doc holding the texture. Load art lazily for planes within about 60 m of the camera or on tap. Show distant planes as instanced, untextured meshes.
+1. Planes no longer carry textures (drawing was removed), so render them as instanced meshes coloured by paper, and build full meshes only for planes near the camera or on tap.
 2. Upgrade three.js from r128 to a current pinned version via the import map. Fix colour-management differences so the paper and ground look the same as before.
 3. Add a frame-time budget: lower the pixel ratio and cut confetti if the frame rate stays under 45 fps.
 4. Accessibility:

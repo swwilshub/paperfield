@@ -1,6 +1,6 @@
 # One Sheet
 
-A multiplayer paper-plane art game. Players fold one A4 sheet per hour in the browser, draw on it, and release it. A fixed automatic thrower flies it through a physics model. Every plane stays where it landed in a shared 3D field. Points come from distance, hang time and records.
+A multiplayer paper-plane game. Players fold one A4 sheet per hour in the browser, pick a paper colour, and release it. A fixed automatic thrower flies it through a physics model. Every plane stays where it landed in a shared 3D field. Points come from distance, hang time and records.
 
 ## Source of truth
 
@@ -15,6 +15,7 @@ The prototype has four parts:
 ## Hard constraints
 
 - **Physics must stay bit-for-bit deterministic.** The same plane spec and the same seed must give the same flight on every machine, because everyone watches the same seeded throws. Any change to the physics core needs golden-test updates and a written reason.
+- **No user-written content on planes.** Drawing and plane names were removed so the only thing a player leaves behind is the plane itself (folds, trim, a paper colour from a fixed palette). Planes are labelled by colour, e.g. "Pink plane". Don't add free text or images to plane docs.
 - **Folds stay mirrored.** The flight model is 2D longitudinal, so asymmetric planes can't be simulated honestly.
 - **Static hosting only.** The site is served by GitHub Pages. No server code except Firebase services, and only if PLAN.md calls for them.
 - **Backend is Firebase.** It provides Auth (anonymous plus a nickname) and Firestore. The Firebase web config goes in `src/net/firebase-config.js`. It is not secret; security comes from Firestore rules.
@@ -26,7 +27,7 @@ The prototype has four parts:
 ```
 index.html
 src/core/      folds.js geometry.js aero.js sim.js thrower.js
-src/ui/        tabs.js fold.js wings.js trim.js draw.js release.js board.js
+src/ui/        state.js tabs.js fold.js wings.js trim.js shapes.js release.js board.js
 src/world/     scene.js planes.js event.js
 src/audio/     music.js
 src/net/       store.js (adapter interface) local.js firebase.js firebase-config.js

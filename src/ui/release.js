@@ -1,15 +1,14 @@
 // ===== release =====
-import {S,$,net,app,HOUR,GUIN,esc,spec,reduceMotion} from './state.js';
+import {S,$,net,app,HOUR,GUIN,esc,spec,reduceMotion,planeLabel} from './state.js';
 import {throwPlane,mulberry,hashStr} from '../core/thrower.js';
 import {geometry} from '../core/geometry.js';
-import {exportTexture} from './draw.js';
 import {renderBoard,updateMe} from './board.js';
 
 export function myPilot(){return net.uid?net.pilots[net.uid]:null;}
 export function cooldown(){const p=myPilot();if(!p||!p.last)return 0;return Math.max(0,p.last+HOUR-Date.now());}
 export function fmtWait(ms){const m=Math.ceil(ms/60000);return m>=60?'1 h':m+' min';}
 export function renderGo(){const cd=cooldown();const G=geometry(spec(),2);
-  $('goTitle').textContent=(($('pname').value||'').trim()||'Your plane')+(G.noWing?' (no wings)':'');
+  $('goTitle').textContent=planeLabel(S)+(G.noWing?' (no wings)':'');
   let hint='';if(net.canWrite===false)hint='You can watch the field but not add to it. You can still throw a plane here; it won\'t be saved.';
   else if(!net.store)hint='Not connected to the shared field, so this plane will fly here but won\'t be saved.';
   else if(cd>0&&net.limit)hint=`Your next plane is ready in ${fmtWait(cd)}. Keep folding; it'll be waiting.`;
@@ -35,8 +34,8 @@ async function doRelease(){$('busy').style.display='grid';await new Promise(r=>s
   if(!rec.maxZ||res.maxZ>rec.maxZ.maxZ)pts.push(['Field record: highest',100]);if(res.loops>0&&(!rec.loops||res.loops>rec.loops.loops))pts.push(['Field record: most loops',50]);
   if(res.dist>GUIN.dist)pts.push(['Beat the Guinness distance record',500]);if(res.time>GUIN.time)pts.push(['Beat the Guinness time record',500]);
   const total=pts.reduce((s,p)=>s+p[1],0);
-  const doc=Object.assign({uid:net.uid||'local',name:(($('pname').value||'').trim()||'Untitled').slice(0,28),at:Date.now(),W:S.W,L:S.L,folds:S.folds,hT:S.hT,hN:S.hN,dih:S.dih,delta:S.elev,style:S.style,gsm:S.gsm,paper:S.paper,
-    img:exportTexture(G),heading:Math.round((rnd()*70-35)*10)/10,roll:Math.round((rnd()<0.5?-1:1)*(55+rnd()*25)),tr:flat,points:total,
+  const doc=Object.assign({uid:net.uid||'local',at:Date.now(),W:S.W,L:S.L,folds:S.folds,hT:S.hT,hN:S.hN,dih:S.dih,delta:S.elev,style:S.style,gsm:S.gsm,paper:S.paper,
+    heading:Math.round((rnd()*70-35)*10)/10,roll:Math.round((rnd()<0.5?-1:1)*(55+rnd()*25)),tr:flat,points:total,
     throws:R.throws.map(t=>[Math.round(t.r.dist*10)/10,Math.round(t.r.time*10)/10]),official:R.official,V:Math.round(o.L.V*10)/10,gamma:Math.round(o.L.gamma*10)/10,
     semi:Math.round(G.semi*10)/10,yTip:Math.round(G.yTip*10)/10,yMin:Math.round(G.yMin*10)/10,sCG:Math.round(G.sCG*10)/10,SM:Math.round(G.SM*1000)/1000,Vcap:Math.round(R.aero.Vcap*10)/10},res);
   let saved=false,saveErr='';
@@ -51,7 +50,7 @@ async function doRelease(){$('busy').style.display='grid';await new Promise(r=>s
   const recordDist=rec.dist?rec.dist.dist:0;net.planes.set(id,p);
   app.world.event(p,{countdown:true,recordDist,onLand:()=>{renderResult(p,pts,total,saved,saveErr,R);renderBoard();updateMe();renderGo();reveal(p,pts,total);}});}
 export function reveal(p,pts,total){const el=$('reveal');const far=p.style!=='float';el.hidden=false;
-  el.innerHTML=`<div class="rv-head"><div class="rv-name">${esc(p.name)}</div><div class="big num">${far?p.dist.toFixed(1):p.time.toFixed(1)}<span class="unit">${far?'m':'s'}</span></div>
+  el.innerHTML=`<div class="rv-head"><div class="rv-name">${esc(planeLabel(p))}</div><div class="big num">${far?p.dist.toFixed(1):p.time.toFixed(1)}<span class="unit">${far?'m':'s'}</span></div>
    <div class="sub">${far?`${p.time.toFixed(1)} s in the air`:`${p.dist.toFixed(1)} m forward`} · peak ${p.maxZ.toFixed(1)} m${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div></div>
    <table class="rv-t"><tbody></tbody></table><div class="rv-total num">0</div><div class="btns" style="justify-content:center"><button class="btn primary" type="button" id="rvClose">Back to the field</button></div>`;
   const tb=el.querySelector('tbody');let i=0,run=0;const tot=el.querySelector('.rv-total');
@@ -60,7 +59,7 @@ export function reveal(p,pts,total){const el=$('reveal');const far=p.style!=='fl
   setTimeout(next,500);el.querySelector('#rvClose').onclick=()=>{el.hidden=true;app.world.end();};}
 export function renderResult(p,pts,total,saved,err,R){const far=p.style!=='float';
   $('result').innerHTML=`<div class="big num">${far?p.dist.toFixed(1):p.time.toFixed(1)}<span class="unit">${far?'m':'s'}</span></div>
-   <p class="sub" style="margin-top:4px">${esc(p.name)} ${far?`stayed up ${p.time.toFixed(1)} s`:`flew ${p.dist.toFixed(1)} m`}, climbed to ${p.maxZ.toFixed(1)} m${p.loops?`, looped ${p.loops} time${p.loops>1?'s':''}`:''}. Thrown at ${p.V} m/s, ${p.gamma}° ${p.gamma<0?'down':'up'}.</p>
+   <p class="sub" style="margin-top:4px">${esc(planeLabel(p))} ${far?`stayed up ${p.time.toFixed(1)} s`:`flew ${p.dist.toFixed(1)} m`}, climbed to ${p.maxZ.toFixed(1)} m${p.loops?`, looped ${p.loops} time${p.loops>1?'s':''}`:''}. Thrown at ${p.V} m/s, ${p.gamma}° ${p.gamma<0?'down':'up'}.</p>
    <div class="throws">${p.throws.map((t,i)=>`<div class="${i===p.official?'off':''}">Throw ${i+1}<br><b class="num">${t[0]} m · ${t[1]} s</b></div>`).join('')}</div>
    <table style="margin-top:10px"><tbody>${pts.map(q=>`<tr><td>${q[0]}</td><td class="r">+${q[1]}</td></tr>`).join('')}<tr><td><b>Points</b></td><td class="r">${total}</td></tr></tbody></table>
    <p class="sub" style="margin-top:8px">${saved?(net.mode==='local'?'Saved in this browser. Only you can see it here.':'Saved to the field. Everyone can see it now.'):esc(err||'Not saved to the shared field.')}</p>`;}

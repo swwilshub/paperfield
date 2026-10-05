@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>One Sheet: the paper plane field</title>
-<meta name="description" content="Fold one A4 paper plane an hour. Draw on it. Let it go. Every plane ever thrown stays where it landed.">
+<meta name="description" content="Fold one A4 paper plane an hour, pick your paper and let it go. Every plane ever thrown stays where it landed.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M2 16 30 4 20 28 15 18Z' fill='%23FFE45C' stroke='%2315243A' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
 <body>
 <main>
  <div class="top">
-  <div><h1>One Sheet</h1><p class="sub" style="margin:0">Fold one A4 plane an hour. Draw on it. Let it go. Every plane ever thrown stays where it landed.</p></div>
+  <div><h1>One Sheet</h1><p class="sub" style="margin:0">Fold one A4 plane an hour. Pick your paper. Let it go. Every plane ever thrown stays where it landed.</p></div>
   <div class="chip" id="me">Connecting…</div>
  </div>
 
@@ -38,7 +38,6 @@
    <button role="tab" data-tab="fold" aria-selected="true">Fold<span>creases</span></button>
    <button role="tab" data-tab="wings" aria-selected="false">Wings<span>keel line</span></button>
    <button role="tab" data-tab="trim" aria-selected="false">Trim<span>bends</span></button>
-   <button role="tab" data-tab="draw" aria-selected="false">Draw<span>art</span></button>
    <button role="tab" data-tab="go" aria-selected="false">Release<span>throw</span></button>
   </div>
 
@@ -79,22 +78,14 @@
      <label for="dih">Wing angle seen from behind <output id="diho" class="num"></output></label><input id="dih" type="range" min="-10" max="25" step="1" value="5">
      <label id="stL">Ask the thrower for</label><div class="seg" role="group" aria-labelledby="stL"><button type="button" data-style="far" aria-pressed="true">Distance</button><button type="button" data-style="float" aria-pressed="false">Hang time</button></div>
      <label id="gsmL">Paper</label><div class="seg" role="group" aria-labelledby="gsmL"><button type="button" data-gsm="80" aria-pressed="true">80 gsm</button><button type="button" data-gsm="100" aria-pressed="false">100 gsm</button></div>
-     <label for="pname">Name your plane</label><input id="pname" type="text" maxlength="28" placeholder="e.g. Lark">
+     <label id="paperL">Paper colour</label><div class="pal papers" id="papers" role="group" aria-labelledby="paperL"></div>
     </div>
     <div>
      <h3>What these do</h3>
      <p class="sub" style="font-size:14px">Bending the back edge up lifts the nose and makes it float; too much and it stalls or loops. Bending it down makes it dive. Wings tilted up keep it level; tilted down look dramatic. Heavier paper is stiffer, so it can be thrown harder, but it sinks faster.</p>
-     <div class="btns"><button class="btn" data-goto="draw" type="button">Next: draw</button></div>
+     <div class="btns"><button class="btn" data-goto="go" type="button">Next: release</button></div>
     </div>
    </div>
-  </div>
-
-  <div class="panel sheet" data-panel="draw" hidden>
-   <p class="sub" style="font-size:14px">This is the top of your plane, both wings opened flat. Draw anything. It's what everyone sees on the field.</p>
-   <div id="drawWrap"><canvas id="baseC"></canvas><canvas id="inkC"></canvas></div>
-   <div class="pal" id="pal" aria-label="Ink colour"></div>
-   <div class="pal papers" id="papers" aria-label="Paper colour"></div>
-   <div class="btns"><button class="btn" id="brushS" type="button" aria-pressed="false">Fine pen</button><button class="btn" id="brushL" type="button" aria-pressed="true">Marker</button><button class="btn" id="clearInk" type="button">Clear drawing</button><button class="btn" data-goto="go" type="button">Next: release</button></div>
   </div>
 
   <div class="panel sheet" data-panel="go" hidden>

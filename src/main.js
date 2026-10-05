@@ -4,7 +4,6 @@ import {initTabs} from './ui/tabs.js';
 import {renderFold,clampKeel} from './ui/fold.js';
 import './ui/wings.js';
 import './ui/trim.js';
-import './ui/draw.js';
 import {renderGo} from './ui/release.js';
 import {renderBoard,updateMe} from './ui/board.js';
 import {audio} from './audio/music.js';

@@ -10,6 +10,8 @@ const newId=()=>'local-'+Date.now().toString(36)+Math.random().toString(36).slic
 
 export function createLocalStore(){
   let data=readLS()||{uid:newId(),pilots:{},planes:[]};
+  // Drawings and plane names were removed: drop any saved by an older version.
+  data.planes=data.planes.map(({img,name,...p})=>p);
   const limit=!/[?&]nolimit\b/.test(location.search);
   let persist=false;
   const planeSubs=new Set(),pilotSubs=new Set();

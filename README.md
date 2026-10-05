@@ -1,6 +1,6 @@
 # One Sheet
 
-Fold one A4 paper plane an hour, draw on it, release it. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
+Fold one A4 paper plane an hour, pick a paper colour, release it. There are no drawings or plane names: the only thing a player leaves behind is the plane. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
 
 Status: **M1**. Modular port of `legacy/one-sheet-game.html`, local play only (planes are saved in this browser). Multiplayer comes in M2.
 
@@ -20,7 +20,7 @@ To reset the local field, run `localStorage.removeItem('onesheet-local-v1')` in 
 ```sh
 npm test               # physics golden tests (node --test), no install needed
 npm ci && npx playwright install chromium
-npx playwright test    # smoke: page loads with no console errors; full fold → draw → release → reveal loop on a phone viewport
+npx playwright test    # smoke: page loads with no console errors; full fold → trim → release → reveal loop on a phone viewport
 BASE_URL=https://<user>.github.io/paperfield/ npx playwright test -g "no console errors"   # check the live site
 ```
 
@@ -37,7 +37,7 @@ One-time setup: **Settings → Pages → Build and deployment → Source: GitHub
 ```
 index.html              markup; loads styles/main.css and src/main.js
 src/core/               physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
-src/ui/                 state.js (shared state), tabs, fold, wings, trim, draw, release, board
+src/ui/                 state.js (shared state), tabs, fold, wings, trim, shapes (plane outlines), release, board
 src/world/              scene.js (renderer, camera, loop), planes.js (meshes, picking), event.js (throw replay)
 src/audio/music.js      procedural music
 src/net/                store.js (adapter interface), local.js, firebase.js (M2), firebase-config.js
