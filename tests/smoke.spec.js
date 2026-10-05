@@ -32,8 +32,10 @@ test('no drawing tools or text inputs on the page',async({page})=>{
 
 test('page loads with no console errors',async({page})=>{
   const errs=watchConsole(page);await page.goto(HOME);
-  await expect(page.locator('#me')).toContainText('pts');
-  await expect(page.locator('#ticker')).not.toContainText('Loading');
+  // The live site loads three.js and the Firebase SDK and signs in before the chip shows points.
+  await expect(page.locator('#me')).toContainText('pts',{timeout:20e3});
+  await expect(page.locator('#ticker')).not.toContainText('Loading',{timeout:20e3});
+  if(process.env.BASE_URL)await expect(page.locator('#me')).not.toContainText('Local');
   await page.waitForTimeout(1500);
   expect(errs).toEqual([]);
 });
