@@ -30,7 +30,8 @@ test('full-screen field, every action in the bottom dock; designer is fold, wing
   await page.goto(LOCAL);
   // No drawing, text or trim controls anywhere.
   await expect(page.locator('#elev, #dih, [data-style], [data-gsm], #inkC, #pname, input[type=text]')).toHaveCount(0);
-  await expect(page.locator('[data-stepdot]')).toHaveCount(3);
+  await expect(page.locator('[data-stepdot]')).toHaveText(['Paper','Fold','Wings','Release']);
+  await expect(page.locator('#papers .swatch')).toHaveCount(38);
   // The field fills the screen and nothing scrolls.
   const vp=page.viewportSize();const wb=await page.locator('#worldWrap').boundingBox();
   expect(wb.width).toBe(vp.width);expect(wb.height).toBe(vp.height);
@@ -44,7 +45,8 @@ test('full-screen field, every action in the bottom dock; designer is fold, wing
   const visibleMain=()=>page.locator('#dock .dockmain:visible');
   await expect(visibleMain()).toHaveText(['Fold a plane']);
   await page.locator('#foldBtn').click();
-  await expect(page.locator('#designer')).toBeVisible();await expect(visibleMain()).toHaveText(['Next: wings']);
+  await expect(page.locator('#designer')).toBeVisible();await expect(visibleMain()).toHaveText(['Next: fold']);
+  await page.locator('[data-dock="paper"] [data-goto="fold"]').click();await expect(visibleMain()).toHaveText(['Next: wings']);
   await page.locator('#toWings').click();await expect(visibleMain()).toHaveText(['Next: release']);
   await page.locator('[data-dock="wings"] [data-goto="go"]').click();await expect(visibleMain()).toHaveText(['Release']);
   await page.locator('[data-dock="go"] .closeSheet').click();
@@ -70,9 +72,14 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await page.evaluate(()=>localStorage.clear());await page.reload();
   await expect(page.locator('#me')).toContainText('plane ready');
 
-  // Open the designer from the dock, then fold the top-left corner to the centre line
-  // (the mirror fold is added automatically).
+  // Open the designer: paper comes first. Surprise me picks something else; then choose blue.
   await page.locator('#foldBtn').click();
+  await expect(page.locator('#paperName')).toHaveText('White');
+  await page.locator('#surprise').click();await expect(page.locator('#paperName')).not.toHaveText('White');
+  await page.locator('#papers button[aria-label="paper blue"]').click();await expect(page.locator('#paperName')).toHaveText('Blue');
+  // Then fold the top-left corner to the centre line (the mirror fold is added automatically).
+  await page.locator('[data-dock="paper"] [data-goto="fold"]').click();
+  await expect(page.locator('#foldSvg pattern, #foldSvg polygon[fill="#CDE7FF"]').first()).toBeAttached();
   // Wait for the sheet's slide-in to finish, or the drag lands where the paper is about to move from.
   await page.locator('#designer').evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished)));
   await drag(page,await sheetToClient(page,105,297),await sheetToClient(page,0,192));
@@ -85,8 +92,6 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await page.locator('#toWings').click();
   await expect(page.locator('#wingSpec')).toContainText('Wingspan');
   await page.locator('[data-dock="wings"] [data-goto="go"]').click();
-  await expect(page.locator('#goTitle')).toHaveText('White plane');
-  await page.locator('#papers button[aria-label="paper blue"]').click();
   await expect(page.locator('#goTitle')).toHaveText('Blue plane');
   await expect(page.locator('#goHint')).toContainText('saved in this browser');
   await page.locator('#release').click();
@@ -110,7 +115,7 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await page.locator('#openBoard').click();
   await expect(page.locator('#recs')).toContainText('Blue plane');
   await page.locator('#board ~ #dock .closeSheet:visible').click();
-  await page.locator('#foldBtn').click();await page.locator('#toWings').click();await page.locator('[data-dock="wings"] [data-goto="go"]').click();
+  await page.locator('#foldBtn').click();await page.locator('[data-stepdot="go"]').click();
   await expect(page.locator('#release')).toBeDisabled();
   expect(errs).toEqual([]);
 });

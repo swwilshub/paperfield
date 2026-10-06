@@ -20,7 +20,8 @@ export const audio=(function(){let ctx=null,eng=null,stage='idle',landT=null,las
   const cue=(name,d)=>{if(live())eng.cue(name,d);};
   return{tele,unlock,cue,
     // Building progress: 'fold' | 'wings' | 'go' | 'idle'. Layers come in as the plane takes shape.
-    stage(t){if(t!==stage&&t!=='idle'&&live()&&['fold','wings','go'].includes(t))cue('step');stage=t;
+    stage(t){if(t==='paper')t='fold';  // picking paper is the start of building
+      if(t!==stage&&t!=='idle'&&live()&&['fold','wings','go'].includes(t))cue('step');stage=t;
       if(live()&&!['count','fly','land'].includes(eng.stage))eng.setStage(t);},
     // A throw: its own song from the plane's id, a countdown riser, then the full band.
     countdown(seed){if(!live())return;eng.setSong(seed);eng.setStage('count',undefined,0.4);cue('count');},

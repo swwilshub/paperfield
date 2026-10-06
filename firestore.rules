@@ -33,7 +33,7 @@ service cloud.firestore {
         && d.throws is list && d.throws.size() == 3
         && d.official in [0, 1, 2]
         // the fixed paper set in src/ui/papers.js (tests/papers.test.js keeps the two in step)
-        && d.paper in ['#FFFFFF', '#FFF3B0', '#CDE7FF', '#FFD6DE', '#D6F5DF', '#E6E0FF', 'cream', 'kraft', 'red', 'midnight', 'graph', 'lined', 'dots', 'news', 'waves', 'polka', 'contour', 'chevron']
+        && d.paper in ['#FFFFFF', '#FFF3B0', '#CDE7FF', '#FFD6DE', '#D6F5DF', '#E6E0FF', 'cream', 'kraft', 'red', 'midnight', 'graph', 'lined', 'dots', 'news', 'waves', 'polka', 'contour', 'chevron', 'coral', 'peach', 'mustard', 'sage', 'teal', 'cornflower', 'plum', 'forest', 'charcoal', 'tracing', 'gingham', 'stripes', 'checks', 'argyle', 'tartan', 'music', 'blueprint', 'stars', 'terrazzo', 'sakura']
         && d.style in ['far', 'float']
         && d.gsm in [80, 100]
         && d.points is int && d.points >= 0 && d.points <= 1500

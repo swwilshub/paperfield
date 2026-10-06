@@ -14,8 +14,9 @@ async function open(browser,playwright){const ctx=await browser.newContext({...p
 test('a throw by one player appears live for another',async({browser,playwright})=>{
   test.setTimeout(120e3);
   const A=await open(browser,playwright),B=await open(browser,playwright);
-  const toRelease=async P=>{await P.locator('#foldBtn').click();await P.locator('#toWings').click();await P.locator('[data-dock="wings"] [data-goto="go"]').click();};
-  await toRelease(A.page);await A.page.locator('#papers button[aria-label="paper green"]').click();
+  const toRelease=async P=>{await P.locator('#foldBtn').click();await P.locator('[data-stepdot="go"]').click();};
+  await A.page.locator('#foldBtn').click();await A.page.locator('#papers button[aria-label="paper green"]').click();
+  await A.page.locator('[data-stepdot="go"]').click();
   await A.page.locator('#release').click();
 
   // B: the live toast (shown for 12 s) names A's plane as soon as it's saved.

@@ -1,5 +1,6 @@
 // ===== folding =====
-import {S,$,app,r1,curPolys} from './state.js';
+import {S,$,app,r1,curPolys,paperOf} from './state.js';
+import {svgPaper} from './papers.js';
 import {pip,splitByFold,lineNormal,polyArea,bboxOf,foldPolys} from '../core/folds.js';
 
 const fsvg=$('foldSvg');
@@ -35,8 +36,10 @@ export function polyPts(pl){return pl.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)
 export function renderFold(){const W=S.W,L=S.L,cx=W/2,pad=12;const polys=curPolys();fsvg.setAttribute('viewBox',`${-pad} ${-pad} ${W+2*pad} ${L+2*pad}`);
   let g=`<rect x="${-pad}" y="${-pad}" width="${W+2*pad}" height="${L+2*pad}" fill="transparent"/><g id="flipG" transform="translate(0 ${L}) scale(1 -1)">`;
   g+=`<rect x="0" y="0" width="${W}" height="${L}" fill="none" stroke="var(--faint)" stroke-dasharray="3 4" stroke-width="0.8"/>`;
-  for(const pl of polys)g+=`<polygon points="${polyPts(pl)}" fill="#fff" fill-opacity="0.001" stroke="none"/>`;
-  for(const pl of polys)g+=`<polygon points="${polyPts(pl)}" fill="var(--layer)" stroke="var(--ink)" stroke-width="1.1" stroke-linejoin="round"/>`;
+  // The sheet in the chosen paper, with each layer shaded on top so the stack shows.
+  const pp=paperOf(S),sv=svgPaper(pp,'foldPaper'),edge=pp.dark?'#E8EEF5':'var(--ink)';g+=`<defs>${sv.defs}</defs>`;
+  for(const pl of polys)g+=`<polygon points="${polyPts(pl)}" fill="${sv.fill}" stroke="none"/>`;
+  for(const pl of polys)g+=`<polygon points="${polyPts(pl)}" fill="var(--layer)" stroke="${edge}" stroke-width="1.1" stroke-linejoin="round"/>`;
   g+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${L}" stroke="var(--faint)" stroke-width="0.8" stroke-dasharray="1 3"/>`;
   const pd=S.pending;
   if(pd&&pd.res&&pd.res.folds){let tmp=polys;for(const f of pd.res.folds){const {mv}=splitByFold(tmp,f);for(const m of mv)g+=`<polygon points="${polyPts(m)}" fill="var(--pen)" fill-opacity="0.22" stroke="none"/>`;

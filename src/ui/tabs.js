@@ -1,6 +1,6 @@
 // ===== app shell: modes, sheets and the dock =====
 // The field fills the screen. Building a plane happens in a sheet above the dock, one step at a
-// time (fold → wings → release). body[data-mode] picks which row of dock actions is shown:
+// time (paper → fold → wings → release). body[data-mode] picks which row of dock actions is shown:
 // field | fold | wings | go | board | event. The sheet's content is per step, so a different
 // folding experience (e.g. 3D) can replace the fold step without touching the dock.
 import {$,app} from './state.js';
@@ -9,7 +9,7 @@ import {renderWings} from './wings.js';
 import {renderGo} from './release.js';
 import {renderBoard} from './board.js';
 
-const STEPS=['fold','wings','go'];
+const STEPS=['paper','fold','wings','go'];
 function setMode(m){document.body.dataset.mode=m;}
 
 export function showStep(t){if(!STEPS.includes(t))return;
@@ -28,10 +28,12 @@ export function eventMode(on){if(on){$('designer').hidden=true;$('board').hidden
 
 export function initTabs(){
   app.ui={showStep,openBoard,closeSheets,eventMode};
-  $('foldBtn').addEventListener('click',()=>showStep('fold'));
+  $('foldBtn').addEventListener('click',()=>showStep('paper'));
+  // The step labels at the top of the sheet jump straight to that step.
+  document.querySelectorAll('[data-stepdot]').forEach(b=>b.addEventListener('click',()=>showStep(b.dataset.stepdot)));
   $('toWings').addEventListener('click',()=>showStep('wings'));
   $('openBoard').addEventListener('click',openBoard);
   document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>showStep(b.dataset.goto)));
   document.querySelectorAll('.closeSheet').forEach(b=>b.addEventListener('click',closeSheets));
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&['fold','wings','go','board'].includes(document.body.dataset.mode))closeSheets();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&['paper','fold','wings','go','board'].includes(document.body.dataset.mode))closeSheets();});
 }

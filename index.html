@@ -27,7 +27,11 @@
 
 <!-- The plane designer: a sheet above the dock. Its content is per step; its actions live in the dock. -->
 <section id="designer" class="sheetpanel" hidden aria-label="Build your plane">
- <ol class="steps" aria-label="Steps"><li data-stepdot="fold">Fold</li><li data-stepdot="wings">Wings</li><li data-stepdot="go">Release</li></ol>
+ <ol class="steps" aria-label="Steps"><li><button type="button" data-stepdot="paper">Paper</button></li><li><button type="button" data-stepdot="fold">Fold</button></li><li><button type="button" data-stepdot="wings">Wings</button></li><li><button type="button" data-stepdot="go">Release</button></li></ol>
+ <div class="step" data-step="paper" hidden>
+  <h3>Pick your paper <output id="paperName"></output></h3>
+  <div id="papers" role="group" aria-label="Paper"><h4>Colours</h4><div class="papers" id="papersColour"></div><h4>Patterns</h4><div class="papers" id="papersPattern"></div></div>
+ </div>
  <div class="step" data-step="fold">
   <svg id="foldSvg" aria-label="Your sheet. Drag across it to draw a crease. The nose is at the top."></svg>
   <div class="hint" id="foldHint">Drag a line across the paper to crease it. Folds are mirrored on the other side. Try folding the top corners to the centre.</div>
@@ -43,7 +47,6 @@
  </div>
  <div class="step" data-step="go" hidden>
   <h3 id="goTitle">Ready to throw</h3>
-  <label id="paperL">Paper <output id="paperName"></output></label><div class="papers" id="papers" role="group" aria-labelledby="paperL"></div>
   <p class="hint" id="goHint"></p>
   <p class="sub small">The same thrower throws every plane three times with small random wobbles. Your best throw counts.</p>
   <div id="result"></div>
@@ -67,6 +70,11 @@
   <button class="btn dockbtn" id="openBoard" type="button">Records</button>
   <button class="btn dockmain" id="foldBtn" type="button">Fold a plane</button>
   <button class="btn dockbtn" id="home" type="button">Recentre</button>
+ </div>
+ <div class="dockrow" data-dock="paper">
+  <button class="btn dockbtn closeSheet" type="button" aria-label="Close the designer">Close</button>
+  <button class="btn dockmain" data-goto="fold" type="button">Next: fold</button>
+  <button class="btn dockbtn" id="surprise" type="button" aria-label="Random paper">Random</button>
  </div>
  <div class="dockrow" data-dock="fold">
   <div class="dockrow inner" id="foldMain">

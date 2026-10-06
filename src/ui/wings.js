@@ -1,5 +1,6 @@
 // ===== wings =====
-import {S,$,app,curPolys,spec} from './state.js';
+import {S,$,app,curPolys,spec,paperOf} from './state.js';
+import {svgPaper} from './papers.js';
 import {clipHalf} from '../core/folds.js';
 import {geometry} from '../core/geometry.js';
 import {aeroModel} from '../core/aero.js';
@@ -15,7 +16,9 @@ export function renderWings(){const W=S.W,L=S.L,cx=W/2,pad=12;$('hNo').textConte
   const P0=[cx-S.hT,G.yMin],P1=[cx-S.hN,G.yTip];
   let g=`<g transform="translate(0 ${L}) scale(1 -1)">`;
   g+=`<polygon points="${cx},${G.yMin} ${P0[0]},${P0[1]} ${P1[0]},${P1[1]} ${cx},${G.yTip}" fill="var(--pen)" fill-opacity="0.10"/>`;
-  for(const pl of half)g+=`<polygon points="${polyPts(pl)}" fill="var(--layer)" stroke="var(--ink)" stroke-width="1.1" stroke-linejoin="round"/>`;
+  const pp=paperOf(S),sv=svgPaper(pp,'wingPaper'),edge=pp.dark?'#E8EEF5':'var(--ink)';g+=`<defs>${sv.defs}</defs>`;
+  for(const pl of half)g+=`<polygon points="${polyPts(pl)}" fill="${sv.fill}" stroke="none"/>`;
+  for(const pl of half)g+=`<polygon points="${polyPts(pl)}" fill="var(--layer)" stroke="${edge}" stroke-width="1.1" stroke-linejoin="round"/>`;
   g+=`<line x1="${cx}" y1="${G.yMin-6}" x2="${cx}" y2="${G.yTip+6}" stroke="var(--ink)" stroke-width="2.4"/>`;
   g+=`<line x1="${P0[0]}" y1="${P0[1]-6}" x2="${P1[0]}" y2="${P1[1]+6}" stroke="var(--fold)" stroke-width="2.4" stroke-dasharray="7 4"/>`;
   g+=`<line x1="${cx-G.sCG*0+0}" y1="${G.yTip-G.sCG}" x2="${cx-24}" y2="${G.yTip-G.sCG}" stroke="var(--fold)" stroke-width="2.2"/></g>`;

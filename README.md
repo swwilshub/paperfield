@@ -12,10 +12,12 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
 
 - **The field** fills the screen. Drag to look around, pinch or scroll to zoom, tap a plane to see it
   and watch its throw again.
-- **Every action is in the dock** at the bottom. *Fold a plane* opens the designer, one step at a time:
-  1. **Fold**: drag across the sheet to crease it. Folds are mirrored, like a real plane.
-  2. **Wings**: set the keel line, which decides what hangs down and what becomes wing.
-  3. **Release**: pick a paper (18 colours and printed patterns) and throw.
+- **Every action is in the dock** at the bottom. *Fold a plane* opens the designer, one step at a time
+  (tap a step's name to jump back):
+  1. **Paper**: 38 colours and printed patterns (graph, blueprint, tartan, sakura…), or *Random*.
+  2. **Fold**: drag across the sheet to crease it. Folds are mirrored, like a real plane.
+  3. **Wings**: set the keel line, which decides what hangs down and what becomes wing.
+  4. **Release**: throw it.
 - **The throw** plays as an event: countdown, flight, landing, then a points breakdown.
 - **Throw limit** scales with how busy the field is: one a minute when it's quiet, stretching towards
   one an hour when it's packed (`src/net/cooldown.js`).

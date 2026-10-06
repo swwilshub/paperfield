@@ -107,8 +107,9 @@ body{background:var(--paper);--dockH:calc(84px + env(safe-area-inset-bottom,0px)
 @keyframes sheetIn{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
 .sheetpanel h2{font-size:20px;margin:0 0 8px}.sheetpanel h3{margin:14px 0 6px}
 .steps{display:flex;justify-content:center;gap:18px;list-style:none;margin:0 0 8px;padding:0;font-size:13px;font-weight:700;color:var(--faint)}
-.steps li[aria-current="step"]{color:var(--ink)}
-.steps li[aria-current="step"]::after{content:"";display:block;height:3px;border-radius:2px;background:var(--pen);margin-top:3px}
+.steps button{font:inherit;color:inherit;background:none;border:0;padding:4px 2px;cursor:pointer}
+.steps button[aria-current="step"]{color:var(--ink)}
+.steps button[aria-current="step"]::after{content:"";display:block;height:3px;border-radius:2px;background:var(--pen);margin-top:3px}
 .step[hidden]{display:none}
 #foldSvg,#wingSvg{display:block;margin:0 auto;width:auto;max-width:100%;height:min(40dvh,360px);touch-action:none;user-select:none;-webkit-user-select:none}
 .steprow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
@@ -119,7 +120,7 @@ body{background:var(--paper);--dockH:calc(84px + env(safe-area-inset-bottom,0px)
  background:linear-gradient(to top,color-mix(in srgb,var(--paper) 92%,transparent) 60%,transparent);pointer-events:none}
 .dockrow{display:none;align-items:center;justify-content:center;gap:10px;width:min(560px,100%);pointer-events:auto}
 .dockrow.inner{display:flex;width:100%}.dockrow.inner[hidden]{display:none}
-body[data-mode="field"] [data-dock="field"],body[data-mode="fold"] [data-dock="fold"],body[data-mode="wings"] [data-dock="wings"],
+body[data-mode="field"] [data-dock="field"],body[data-mode="paper"] [data-dock="paper"],body[data-mode="fold"] [data-dock="fold"],body[data-mode="wings"] [data-dock="wings"],
 body[data-mode="go"] [data-dock="go"],body[data-mode="board"] [data-dock="board"]{display:flex}
 body[data-mode="event"] #dock{display:none}
 .dockbtn{flex:1 1 0;max-width:140px;padding:11px 8px;font-size:14px;background:var(--card)}
@@ -144,7 +145,7 @@ body:not([data-mode="field"]) #empty,body:not([data-mode="field"]) #card,body:no
 #board .recs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #board .rec{padding:8px 10px}#board .rec .v{font-size:20px}#board .rec small{font-size:12px}
 /* paper swatches: little sheets with a dog-eared corner */
-.papers{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:8px}
+.papers{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:8px;margin-top:8px}
 .papers .swatch{position:relative;width:100%;aspect-ratio:1;border:0;border-radius:3px;background-size:48px 48px;cursor:pointer;padding:0;
  box-shadow:0 1px 2px rgba(13,21,32,.25),0 0 0 1px rgba(13,21,32,.12);transition:transform .12s ease,box-shadow .12s ease}
 .papers .swatch::after{content:"";position:absolute;right:0;top:0;width:28%;height:28%;border-radius:0 3px 0 0;
@@ -152,3 +153,5 @@ body:not([data-mode="field"]) #empty,body:not([data-mode="field"]) #card,body:no
 .papers .swatch[aria-pressed="true"]{transform:translateY(-3px) rotate(-2deg);box-shadow:0 4px 10px rgba(13,21,32,.3),0 0 0 2.5px var(--ink)}
 .papers .swatch:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.papers .swatch{transition:none}}
+#papers h4{margin:12px 0 0;font-size:13px;color:var(--graphite);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+#designer h3 output{font-weight:650;color:var(--graphite);margin-left:6px}
