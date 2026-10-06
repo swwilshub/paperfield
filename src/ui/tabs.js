@@ -13,6 +13,7 @@ const STEPS=['paper','fold','wings','go'];
 function setMode(m){document.body.dataset.mode=m;}
 
 export function showStep(t){if(!STEPS.includes(t))return;
+  if(t!=='go'&&app.world&&app.world.preview)app.world.preview(null);   // the 3D preview belongs to the Release step
   $('board').hidden=true;$('designer').hidden=false;setMode(t);
   document.querySelectorAll('[data-step]').forEach(s=>s.hidden=s.dataset.step!==t);
   document.querySelectorAll('[data-stepdot]').forEach(d=>d.dataset.stepdot===t?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));
@@ -22,7 +23,7 @@ export function showStep(t){if(!STEPS.includes(t))return;
 export const showTab=showStep;
 
 export function openBoard(){$('designer').hidden=true;$('board').hidden=false;setMode('board');renderBoard();app.audio&&app.audio.cue('board');}
-export function closeSheets(){$('designer').hidden=true;$('board').hidden=true;setMode('field');app.audio&&app.audio.stage('idle');}
+export function closeSheets(){if(app.world&&app.world.preview)app.world.preview(null);$('designer').hidden=true;$('board').hidden=true;setMode('field');app.audio&&app.audio.stage('idle');}
 // A throw takes over the screen: no sheets, no dock (Skip is the only action).
 export function eventMode(on){if(on){$('designer').hidden=true;$('board').hidden=true;setMode('event');}else setMode('field');}
 

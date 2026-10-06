@@ -39,4 +39,4 @@ export function initPlanes(W){const {THREE,scene,cam,canvas}=W;
   function hideCard(){$('card').style.display='none';}
   let toastT=null;function liveToast(it){app.audio.cue('arrival');const t=$('toast');t.innerHTML=`<b>${esc(nm(it.p.pid))}</b> just threw <b>${esc(planeLabel(it.p))}</b> <button class="btn" type="button">Watch</button>`;t.hidden=false;
     t.querySelector('button').onclick=()=>{app.audio.unlock();t.hidden=true;const i=flights.indexOf(it);if(i>=0)flights.splice(i,1);W.event(it.p,{countdown:false});};clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},12000);}
-  Object.assign(W,{items,flights,group,sample,setPose,poseAt,rest,add,focus,pick,showCard,hideCard});}
+  Object.assign(W,{items,flights,group,sample,setPose,poseAt,rest,add,focus,pick,showCard,hideCard,paperTexture});}

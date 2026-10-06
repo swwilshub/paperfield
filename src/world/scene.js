@@ -4,6 +4,7 @@
 import {$,css,GUIN} from '../ui/state.js';
 import {initPlanes} from './planes.js';
 import {initEvent} from './event.js';
+import {initPreview} from './preview.js';
 
 function stubWorld(){$('ticker').textContent='3D view unavailable on this device. Building and scoring still work.';
   return{add(){},focus(){},event(p,o){if(o&&o.onLand)o.onLand();},busy:()=>false,end(){}};}
@@ -34,7 +35,7 @@ export async function createWorld(){let THREE,R;const canvas=$('world');
   function resize(){const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
   // Shared context for planes.js and event.js. W.ev is the running event, if any.
   const W={THREE,R,scene,cam,canvas,O,resize,setRecordRing,follow:null,ev:null};
-  initPlanes(W);initEvent(W);
+  initPlanes(W);initEvent(W);initPreview(W);
   const ptrs=new Map();let moved=0,pinch0=0;
   canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,[e.clientX,e.clientY]);moved=0;if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch0=Math.hypot(a[0]-b[0],a[1]-b[1]);}});
   canvas.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;const p=ptrs.get(e.pointerId);const dx=e.clientX-p[0],dy=e.clientY-p[1];ptrs.set(e.pointerId,[e.clientX,e.clientY]);moved+=Math.abs(dx)+Math.abs(dy);
@@ -47,8 +48,8 @@ export async function createWorld(){let THREE,R;const canvas=$('world');
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let lastNow=performance.now();
   function loop(now){requestAnimationFrame(loop);const dt=Math.min(0.05,(now-lastNow)/1000);lastNow=now;if(!visible&&!W.ev)return;
     const flights=W.flights;for(let i=flights.length-1;i>=0;i--){const it=flights[i];const t=(now-it.t0)/1000;const n=it.p.tr.length/4;const tEnd=it.p.tr[4*(n-1)];if(reduce||t>=tEnd){W.rest(it);flights.splice(i,1);continue;}W.poseAt(it,t);}
-    W.updateBits(dt);
+    W.updateBits(dt);W.previewTick(dt);
     if(W.ev)W.updateEvent(dt);else placeCam();
     R.render(scene,cam);}
   requestAnimationFrame(loop);
-  return{add:W.add,focus:W.focus,event:W.event,busy:()=>!!W.ev,end:()=>W.endEvent()};}
+  return{add:W.add,focus:W.focus,event:W.event,preview:W.preview,foldUp:W.foldUp,busy:()=>!!W.ev,end:()=>W.endEvent()};}

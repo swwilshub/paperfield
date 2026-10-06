@@ -12,7 +12,10 @@ export function cooldown(){const p=myPilot();return cooldownLeft(p&&p.last,net.p
 export function fieldLine(){const a=fieldActivity(net.planes.values(),Date.now());const w=Math.round(waitMs(a)/60e3);
   return `${a.pilots} pilot${a.pilots===1?'':'s'} this hour, ${a.airborne} plane${a.airborne===1?'':'s'} in the air: ${w} min between planes.`;}
 export function fmtWait(ms){const m=Math.ceil(ms/60000);return m>=60?'1 h':m+' min';}
+// What the 3D preview and fold-up need: the build plus a few measurements of the folded sheet.
+export function previewSpec(){const G=geometry(spec(),2);return{W:S.W,L:S.L,folds:S.folds,hT:S.hT,hN:S.hN,yMin:G.yMin,yTip:G.yTip,dih:S.dih,paper:S.paper};}
 export function renderGo(){const cd=cooldown();const G=geometry(spec(),2);
+  if(document.body.dataset.mode==='go'&&app.world.preview)app.world.preview(previewSpec());
   $('goTitle').textContent=planeLabel(S)+(G.noWing?' (no wings)':'');
   let hint='';if(net.canWrite===false)hint='You can watch the field but not add to it. You can still throw a plane here; it won\'t be saved.';
   else if(!net.store)hint='Not connected to the shared field, so this plane will fly here but won\'t be saved.';
@@ -42,7 +45,8 @@ async function doRelease(){$('busy').style.display='grid';await new Promise(r=>s
   $('busy').style.display='none';
   const p=Object.assign({id,pid:net.uid||'local'},doc);
   $('result').innerHTML='<p class="sub">Watch the field.</p>';
-  if(app.ui)app.ui.closeSheets();await new Promise(r=>setTimeout(r,300));
+  // The sheet goes, and your plane folds up in front of you before the countdown.
+  if(app.ui)app.ui.eventMode(true);if(app.world.foldUp)await app.world.foldUp(previewSpec());else await new Promise(r=>setTimeout(r,300));
   const recordDist=rec.dist?rec.dist.dist:0;net.planes.set(id,p);
   app.world.event(p,{countdown:true,recordDist,onLand:()=>{renderResult(p,pts,total,saved,saveErr,R);renderBoard();updateMe();renderGo();reveal(p,pts,total);}});}
 export function reveal(p,pts,total){const el=$('reveal');const far=p.style!=='float';el.hidden=false;

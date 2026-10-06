@@ -17,7 +17,7 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   1. **Paper**: 38 colours and printed patterns (graph, blueprint, tartan, sakura…), or *Random*.
   2. **Fold**: drag across the sheet to crease it. Folds are mirrored, like a real plane.
   3. **Wings**: set the keel line, which decides what hangs down and what becomes wing.
-  4. **Release**: throw it.
+  4. **Release**: your plane turns slowly above the sheet. Release it and the sheet folds up in front of you, then the countdown starts.
 - **The throw** plays as an event: countdown, flight, landing, then a points breakdown.
 - **Throw limit** scales with how busy the field is: one a minute when it's quiet, stretching towards
   one an hour when it's packed (`src/net/cooldown.js`).
@@ -112,7 +112,7 @@ styles/main.css      design tokens and layout
 src/main.js          boot
 src/core/            physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
 src/ui/              app shell (tabs.js), fold, wings, papers + swatch picker, shapes, release, board
-src/world/           3D field: scene, plane meshes, throw events
+src/world/           3D field: scene, plane meshes, throw events, release preview + fold-up (preview, foldanim)
 src/audio/           music API, procedural engine and event cues, music theory
 src/net/             store adapter (local / Firebase), throw limit, pilot names, plane doc
 tests/               unit, smoke, rules, adapter and multiplayer tests

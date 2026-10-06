@@ -96,8 +96,8 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await expect(page.locator('#goHint')).toContainText('saved in this browser');
   await page.locator('#release').click();
 
-  // The event: countdown, flight, landing, then the reveal card with points.
-  await expect(page.locator('#worldWrap')).toHaveClass(/event/);
+  // The event: the sheet folds up in front of you, then countdown, flight, landing and the reveal card.
+  await expect(page.locator('#worldWrap')).toHaveClass(/event/,{timeout:20e3});
   await expect(page.locator('#reveal')).toBeVisible({timeout:60e3});
   await expect(page.locator('#reveal .rv-total')).toHaveClass(/done/,{timeout:20e3});
   await expect(page.locator('#reveal .rv-total')).toContainText('points');

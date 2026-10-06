@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/physics.test.js tests/theory.test.js tests/cooldown.test.js tests/papers.test.js",
+    "test": "node --test tests/physics.test.js tests/theory.test.js tests/cooldown.test.js tests/papers.test.js tests/foldanim.test.js",
     "golden": "node tools/run-legacy.cjs",
     "serve": "python3 -m http.server 8080",
     "test:emulator": "firebase emulators:exec --only firestore,auth --project demo-one-sheet \"node --test --test-concurrency=1 tests/rules.test.js tests/firebase.test.js && npx playwright test tests/multiplayer.spec.js\"",

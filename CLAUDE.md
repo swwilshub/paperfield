@@ -30,11 +30,11 @@ The prototype has four parts:
 index.html
 src/core/      folds.js geometry.js aero.js sim.js thrower.js
 src/ui/        state.js tabs.js (app shell: modes, sheets, dock) fold.js wings.js papers.js (the paper set + pattern tiles) paper.js (swatch picker) shapes.js release.js board.js
-src/world/     scene.js planes.js event.js
+src/world/     scene.js planes.js event.js preview.js (release preview + fold-up) foldanim.js (pure fold-up geometry)
 src/audio/     music.js (game-facing API) engine.js (procedural chill band + event cues) theory.js (pure, seeded keys/chords/scales)
 src/net/       store.js (adapter interface) local.js firebase.js firebase-config.js cooldown.js (throw limit) pilots.js (generated pilot names) planedoc.js (the saved plane doc)
 styles/        main.css
-tests/         physics/theory/cooldown/papers.test.js (node --test) rules.test.js firebase.test.js multiplayer.spec.js (emulators) smoke.spec.js (Playwright)
+tests/         physics/theory/cooldown/papers/foldanim.test.js (node --test) rules.test.js firebase.test.js multiplayer.spec.js (emulators) smoke.spec.js (Playwright)
 firestore.rules  firebase.json  README.md  PLAN.md
 legacy/one-sheet-game.html
 ```
