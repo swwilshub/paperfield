@@ -4,7 +4,7 @@ import {chromium} from '@playwright/test';
 import {writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 const out=process.argv[2]||'music-preview.mp3';
-const script=[[20,'fold'],[40,'wings'],[56,'trim'],[72,'go'],[88,'count',{quick:true,jump:true,jumpTo:'fly'}],[91,'fly',{quick:true}],[101,'land',{quick:true}],[112,'go'],[126,'idle']];
+const script=[[20,'fold'],[40,'wings'],[64,'go'],[88,'count',{quick:true,jump:true,jumpTo:'fly'}],[91,'fly',{quick:true}],[101,'land',{quick:true}],[112,'go'],[126,'idle']];
 const b=await chromium.launch(process.env.PW_CHROMIUM?{executablePath:process.env.PW_CHROMIUM}:{});const p=await b.newPage();
 p.on('console',m=>console.log('page:',m.text()));
 await p.goto('http://127.0.0.1:8090/tools/preview-music.html');
