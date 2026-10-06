@@ -1,12 +1,14 @@
 // ===== wings =====
-import {S,$,curPolys,spec} from './state.js';
+import {S,$,app,curPolys,spec} from './state.js';
 import {clipHalf} from '../core/folds.js';
 import {geometry} from '../core/geometry.js';
 import {aeroModel} from '../core/aero.js';
 import {polyPts} from './fold.js';
 
 const wsvg=$('wingSvg');let wingTimer=null;
-['hN','hT'].forEach(k=>$(k).addEventListener('input',()=>{S[k]=+$(k).value;$(k+'o').textContent=S[k]+' mm';clearTimeout(wingTimer);wingTimer=setTimeout(renderWings,30);}));
+// Dragging a keel slider plays soft notes that rise with the keel depth (at most ~12 a second).
+let keelT=0;
+['hN','hT'].forEach(k=>$(k).addEventListener('input',()=>{S[k]=+$(k).value;const now=performance.now();if(app.audio&&now-keelT>80){keelT=now;app.audio.cue('keel',{v:S[k]/+$(k).max});}$(k+'o').textContent=S[k]+' mm';clearTimeout(wingTimer);wingTimer=setTimeout(renderWings,30);}));
 export function renderWings(){const W=S.W,L=S.L,cx=W/2,pad=12;$('hNo').textContent=S.hN+' mm';$('hTo').textContent=S.hT+' mm';const polys=curPolys();
   const half=polys.map(p=>clipHalf(p,[cx,0],[-1,0],1)).filter(p=>p.length>2);const G=geometry(spec(),2);
   wsvg.setAttribute('viewBox',`${-pad} ${-pad} ${cx+2*pad+34} ${L+2*pad}`);

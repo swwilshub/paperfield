@@ -21,7 +21,7 @@ export function showStep(t){if(!STEPS.includes(t))return;
 // Kept for callers of the old tab API.
 export const showTab=showStep;
 
-export function openBoard(){$('designer').hidden=true;$('board').hidden=false;setMode('board');renderBoard();}
+export function openBoard(){$('designer').hidden=true;$('board').hidden=false;setMode('board');renderBoard();app.audio&&app.audio.cue('board');}
 export function closeSheets(){$('designer').hidden=true;$('board').hidden=true;setMode('field');app.audio&&app.audio.stage('idle');}
 // A throw takes over the screen: no sheets, no dock (Skip is the only action).
 export function eventMode(on){if(on){$('designer').hidden=true;$('board').hidden=true;setMode('event');}else setMode('field');}

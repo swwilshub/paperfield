@@ -33,10 +33,10 @@ export function initPlanes(W){const {THREE,scene,cam,canvas}=W;
   function focus(id){const it=items.get(id);if(!it)return;if(W.ev)W.endEvent();const O=W.O;O.tx=it.g.position.x;O.tz=it.g.position.z;O.ty=0;O.r=8;O.el=0.55;W.follow=null;showCard(it.p);}
   function pick(e){const r=canvas.getBoundingClientRect();const v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(v,cam);const hit=ray.intersectObjects(group.children,true)[0];
     if(hit&&hit.object.userData.pid){const p=net.planes.get(hit.object.userData.pid);if(p)showCard(p);}else hideCard();}
-  function showCard(p){const c=$('card');c.style.display='flex';c.innerHTML=`<button class="x" aria-label="Close">×</button><img alt="" src="${thumbnail(p)}"><div><b>${esc(planeLabel(p))}</b><div class="sub" style="font-size:13px">by ${esc(nm(p.pid))}, ${ago(p.at)}</div>
+  function showCard(p){app.audio.cue('card',{dist:p.dist});const c=$('card');c.style.display='flex';c.innerHTML=`<button class="x" aria-label="Close">×</button><img alt="" src="${thumbnail(p)}"><div><b>${esc(planeLabel(p))}</b><div class="sub" style="font-size:13px">by ${esc(nm(p.pid))}, ${ago(p.at)}</div>
      <div class="num" style="font-size:14px;font-weight:700;margin-top:4px">${p.dist} m · ${p.time} s · ${p.maxZ} m high${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div><button class="btn" style="margin-top:6px;padding:5px 10px;font-size:13px" type="button">Watch the throw</button></div>`;
     c.querySelector('.x').onclick=hideCard;c.querySelector('.btn').onclick=()=>{app.audio.unlock();hideCard();W.event(p,{countdown:false});};}
   function hideCard(){$('card').style.display='none';}
-  let toastT=null;function liveToast(it){const t=$('toast');t.innerHTML=`<b>${esc(nm(it.p.pid))}</b> just threw <b>${esc(planeLabel(it.p))}</b> <button class="btn" type="button">Watch</button>`;t.hidden=false;
+  let toastT=null;function liveToast(it){app.audio.cue('arrival');const t=$('toast');t.innerHTML=`<b>${esc(nm(it.p.pid))}</b> just threw <b>${esc(planeLabel(it.p))}</b> <button class="btn" type="button">Watch</button>`;t.hidden=false;
     t.querySelector('button').onclick=()=>{app.audio.unlock();t.hidden=true;const i=flights.indexOf(it);if(i>=0)flights.splice(i,1);W.event(it.p,{countdown:false});};clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},12000);}
   Object.assign(W,{items,flights,group,sample,setPose,poseAt,rest,add,focus,pick,showCard,hideCard});}

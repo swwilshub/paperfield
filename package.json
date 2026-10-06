@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/physics.test.js tests/music.test.js tests/cooldown.test.js tests/papers.test.js",
+    "test": "node --test tests/physics.test.js tests/theory.test.js tests/music.test.js tests/cooldown.test.js tests/papers.test.js",
     "golden": "node tools/run-legacy.cjs",
     "serve": "python3 -m http.server 8080",
     "music": "python3 tools/build-music.py",

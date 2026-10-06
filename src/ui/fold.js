@@ -53,7 +53,7 @@ fsvg.addEventListener('pointermove',e=>{if(!S.drag)return;S.drag.b=snap(svgPoint
 fsvg.addEventListener('pointerup',()=>{if(!S.drag)return;const d=S.drag;S.drag=null;if(!d.b){renderFold();return;}
   const res=resolveFold(d.a,d.b,false);S.pending={a:d.a,b:d.b,flip:false,res};
   $('foldHint').innerHTML=res.err?`<span class="err">${res.err}</span>`:res.snapped?'Across the middle: snapped level so both halves fold together. Blue shows the paper that moves.':'Blue shows the paper that moves. The same fold happens on the other side.';
-  if(res.err)S.pending=null;renderFold();});
+  if(res.err)S.pending=null;renderFold();cue(res.err?'nope':'pending');});
 fsvg.addEventListener('pointercancel',()=>{S.drag=null;renderFold();});
 $('flipFold').addEventListener('click',()=>{const p=S.pending;if(!p)return;const res=resolveFold(p.a,p.b,!p.flip);if(res.err){$('foldHint').innerHTML=`<span class="err">${res.err}</span>`;return;}p.flip=!p.flip;p.res=res;renderFold();});
 $('doFold').addEventListener('click',()=>{const p=S.pending;if(!p||!p.res.folds)return;S.folds=S.folds.concat(p.res.folds);S.actions.push(p.res.folds.length);S.pending=null;$('foldHint').textContent='Folded. Draw another crease, or move on to the wings.';clampKeel();renderFold();});
@@ -63,3 +63,10 @@ $('restart').addEventListener('click',()=>{if(!confirm('Unfold everything and st
 document.querySelectorAll('[data-or]').forEach(b=>b.addEventListener('click',()=>{if(S.folds.length)return;S.orient=b.dataset.or;S.W=S.orient==='portrait'?210:297;S.L=S.orient==='portrait'?297:210;
   document.querySelectorAll('[data-or]').forEach(x=>x.setAttribute('aria-pressed',x===b));clampKeel();renderFold();}));
 export function clampKeel(){const cx=S.W/2;['hN','hT'].forEach(k=>{$(k).max=Math.floor(cx);if(S[k]>cx)S[k]=Math.floor(cx);$(k).value=S[k];});}
+
+// Musical cues (no-ops until sound is unlocked). Registered after the handlers above, so they see the result.
+function cue(n,d){if(app.audio)app.audio.cue(n,d);}
+$('doFold').addEventListener('click',()=>cue('crease',{n:S.actions.length}));
+$('flipFold').addEventListener('click',()=>cue('pending'));
+$('undo').addEventListener('click',()=>cue('undo'));
+$('restart').addEventListener('click',()=>{if(!S.actions.length)cue('restart');});

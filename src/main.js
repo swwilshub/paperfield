@@ -11,6 +11,8 @@ import {createWorld} from './world/scene.js';
 import {openStore} from './net/store.js';
 
 app.audio=audio;
+// For tests and the console: window.oneSheet.audio.debug() shows the music stage and song.
+window.oneSheet={audio};
 // Until three.js has loaded, releases still score and reveal; the plane just isn't shown flying.
 app.world={add(){},focus(){},event(p,o){if(o&&o.onLand)o.onLand();},busy:()=>false,end(){}};
 

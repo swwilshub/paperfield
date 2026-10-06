@@ -1,6 +1,6 @@
 // ===== paper picker =====
 // Swatches for the fixed set of papers (papers.js): plain colours and printed patterns.
-import {S,$} from './state.js';
+import {S,$,app} from './state.js';
 import {PAPERS,tileCanvas} from './papers.js';
 import {renderGo} from './release.js';
 
@@ -11,5 +11,5 @@ for(const p of PAPERS){const b=document.createElement('button');b.type='button';
   b.title=p.name;b.setAttribute('aria-label','paper '+p.name.toLowerCase());
   // ~2.4 px per mm, so a swatch shows a 20 mm patch at real scale.
   b.style.backgroundColor=p.base;if(p.pattern)b.style.backgroundImage=`url(${tileCanvas(p,96).toDataURL()})`;
-  b.onclick=()=>select(p.id);box.appendChild(b);}
+  b.onclick=()=>{select(p.id);if(app.audio)app.audio.cue('paper',{pattern:!!p.pattern});};box.appendChild(b);}
 select(S.paper);

@@ -67,17 +67,17 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await page.evaluate(()=>localStorage.clear());await page.reload();
   await expect(page.locator('#me')).toContainText('plane ready');
 
-  // Music starts on the first interaction: the manifest, then the first phrase's stems.
-  const musicReq=page.waitForRequest(r=>/assets\/music\/p\d\d-\w+\.mp3$/.test(r.url()),{timeout:15e3});
-
   // Open the designer from the dock, then fold the top-left corner to the centre line
   // (the mirror fold is added automatically).
   await page.locator('#foldBtn').click();
+  // Wait for the sheet's slide-in to finish, or the drag lands where the paper is about to move from.
+  await page.locator('#designer').evaluate(el=>Promise.all(el.getAnimations().map(a=>a.finished)));
   await drag(page,await sheetToClient(page,105,297),await sheetToClient(page,0,192));
   await expect(page.locator('#pendingBtns')).toBeVisible();
   await page.locator('#doFold').click();
   await expect(page.locator('#foldCount')).toHaveText('1 crease so far.');
-  await musicReq;
+  // Music starts on the first interaction, and folding brings in the fold stage.
+  await page.waitForFunction(()=>window.oneSheet.audio.debug()&&window.oneSheet.audio.debug().stage==='fold');
 
   await page.locator('#toWings').click();
   await expect(page.locator('#wingSpec')).toContainText('Wingspan');

@@ -20,7 +20,10 @@ export function renderGo(){const cd=cooldown();const G=geometry(spec(),2);
   else if(net.mode==='local')hint='Playing locally: your planes are saved in this browser only.';
   $('goHint').textContent=hint;$('release').disabled=cd>0&&limited();}
 function limited(){return !!net.store&&net.canWrite!==false&&net.limit;}
-setInterval(()=>{if(document.body.dataset.mode==='go')renderGo();updateMe();},15000);
+// Every few seconds: refresh, and play a little motif when your next plane becomes ready.
+let wasWaiting=false;
+setInterval(()=>{if(document.body.dataset.mode==='go')renderGo();updateMe();
+  const waiting=cooldown()>0&&limited();if(wasWaiting&&!waiting&&app.audio)app.audio.cue('ready');wasWaiting=waiting;},5000);
 $('release').addEventListener('click',release);
 export function records(excludeId){const R={dist:null,time:null,maxZ:null,loops:null};for(const p of net.planes.values()){if(p.id===excludeId)continue;for(const k in R)if(!R[k]||p[k]>R[k][k])R[k]=p;}return R;}
 let releasing=false;
@@ -47,7 +50,7 @@ export function reveal(p,pts,total){const el=$('reveal');const far=p.style!=='fl
    <div class="sub">${far?`${p.time.toFixed(1)} s in the air`:`${p.dist.toFixed(1)} m forward`} · peak ${p.maxZ.toFixed(1)} m${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div></div>
    <table class="rv-t"><tbody></tbody></table><div class="rv-total num">0</div><div class="btns" style="justify-content:center"><button class="btn dockmain" type="button" id="rvClose">Back to the field</button></div>`;
   const tb=el.querySelector('tbody');let i=0,run=0;const tot=el.querySelector('.rv-total');
-  const next=()=>{if(el.hidden)return;if(i<pts.length){const q=pts[i];tb.insertAdjacentHTML('beforeend',`<tr class="${q[1]>=100?'rec':''}"><td>${esc(q[0])}</td><td class="r">+${q[1]}</td></tr>`);run+=q[1];tot.textContent=run+' points';app.audio.blip(i);i++;setTimeout(next,reduceMotion?60:420);}
+  const next=()=>{if(el.hidden)return;if(i<pts.length){const q=pts[i];tb.insertAdjacentHTML('beforeend',`<tr class="${q[1]>=100?'rec':''}"><td>${esc(q[0])}</td><td class="r">+${q[1]}</td></tr>`);run+=q[1];tot.textContent=run+' points';if(/^Personal best/.test(q[0]))app.audio.cue('pb');else app.audio.blip(i,q[1]>=100);i++;setTimeout(next,reduceMotion?60:420);}
     else{tot.classList.add('done');app.audio.total();}};
   setTimeout(next,500);el.querySelector('#rvClose').onclick=()=>{el.hidden=true;app.world.end();};}
 export function renderResult(p,pts,total,saved,err,R){const far=p.style!=='float';

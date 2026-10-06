@@ -24,7 +24,7 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
     const P=it.g.position;const d=cam.position.clone().sub(P);O.tx=P.x;O.ty=0;O.tz=P.z;O.r=Math.max(4,d.length());O.el=Math.max(0.05,Math.asin(Math.max(-1,Math.min(1,d.y/O.r))));O.az=Math.atan2(d.z,d.x);
     cam.fov=50;cam.updateProjectionMatrix();W.ev=null;wrap.classList.remove('event');if(app.ui)app.ui.eventMode(false);setTimeout(W.resize,30);$('skip').hidden=true;$('flightHud').style.display='none';$('callout').className='';$('eventInfo').innerHTML='';$('reveal').hidden=true;audio.idle();if(!silent)W.showCard(it.p);}
   $('skip').onclick=()=>{const ev=W.ev;if(!ev)return;if(ev.phase==='land'){endEvent();return;}land();};
-  function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);ev.phase='land';ev.t=0;audio.land();if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p).base);
+  function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);ev.phase='land';ev.t=0;audio.land({dist:p.dist,record:ev.opts.recordDist!=null&&p.dist>ev.opts.recordDist});if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p).base);
     const far=p.style!=='float';callout(far?p.dist.toFixed(1)+' m':p.time.toFixed(1)+' s',true);
     $('flightHud').innerHTML=`<span class="hb num">${p.dist.toFixed(1)} m</span><span class="num">${p.time.toFixed(1)} s · peak ${p.maxZ.toFixed(1)} m</span>`;
     if(ev.opts.onLand)setTimeout(()=>{if(W.ev&&W.ev.it===it)ev.opts.onLand();},900);}
@@ -40,8 +40,8 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
       audio.tele.alt=s[1];audio.tele.speed=speed;audio.tele.vz=vz;
       trailPush(P);
       for(const m of ev.ms)if(!m.done&&s[0]>=m.d){m.done=true;callout(m.txt,m.big);audio.chime(m.big);}
-      const loops=Math.floor(Math.abs(s[2]-p.tr[3])/(2*Math.PI));if(loops>ev.loopsSeen){ev.loopsSeen=loops;callout(loops>1?`Loop ×${loops}!`:'Loop!',true);audio.chime(true);}
-      if(!ev.peakDone&&p.maxZ>3&&s[1]>=p.maxZ-0.08){ev.peakDone=true;callout(`Peak ${p.maxZ.toFixed(1)} m`);audio.chime(false);}
+      const loops=Math.floor(Math.abs(s[2]-p.tr[3])/(2*Math.PI));if(loops>ev.loopsSeen){ev.loopsSeen=loops;callout(loops>1?`Loop ×${loops}!`:'Loop!',true);audio.cue('loop',{n:loops});}
+      if(!ev.peakDone&&p.maxZ>3&&s[1]>=p.maxZ-0.08){ev.peakDone=true;callout(`Peak ${p.maxZ.toFixed(1)} m`);audio.cue('peak');}
       $('flightHud').style.display='block';$('flightHud').innerHTML=`<span class="hb num">${s[0].toFixed(1)} m</span><span class="num">${ev.sim.toFixed(1)} s · ${s[1].toFixed(1)} m up · ${speed.toFixed(1)} m/s</span>`;
       const want=P.clone().addScaledVector(it.dir,-7).addScaledVector(it.side,2.6).add(new THREE.Vector3(0,2.2+Math.max(0,s[1])*0.15,0));if(want.y<0.6)want.y=0.6;
       cam.position.lerp(want,1-Math.exp(-dt*(ev.sim<0.7?6:3)));ev.look.lerp(P.clone().addScaledVector(it.dir,2.5),1-Math.exp(-dt*6));cam.lookAt(ev.look);

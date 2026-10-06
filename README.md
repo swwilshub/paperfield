@@ -41,7 +41,7 @@ Reset local play with `localStorage.removeItem('onesheet-local-v1')` in the cons
 ## Tests
 
 ```sh
-npm test               # physics golden, music, throw limit and paper set (node --test)
+npm test               # physics golden, music theory, throw limit and paper set (node --test)
 npx playwright test    # smoke: full-screen layout, no console errors, fold → wings → release → reveal
 npm run test:emulator  # Firestore rules, the Firebase adapter and a two-browser multiplayer test
 ```
@@ -80,19 +80,21 @@ visitors a day. A throw is 2 writes; a plane is 1–3.5 KB.
 
 ## Music
 
-"Fade to Wind" by palettedisk, played as nine stems by a dynamic mixer (`src/audio/`):
+Procedural chill music made in code with Web Audio (`src/audio/`): electric piano, warm pad, soft bass,
+brushed drums, glassy plucks, vinyl crackle and wind. Each song is generated from a seed (key, lo-fi
+7th/9th chord progression, 70–84 BPM with a lazy swing), so it never needs a download.
 
-- **Layers build as you play.** Calm piano, pads and wind on the field; strings, guitar, bass and
-  percussion come in as you fold and set the wings; the full band for the throw, following its speed and
-  height; a swell on landing.
-- **Generated as it plays.** The song is cut into 8-bar phrases. Each next phrase is picked from those
-  that fit harmonically, weighted to the moment, so it never repeats exactly. Seeded by plane, so everyone
-  watching a throw hears the same thing.
-- **Light on phones.** Only the next phrase or two are fetched and decoded.
+- **It builds as you play.** Piano and pads on the field; bass and hats as you fold; drums as you set the
+  wings; the full band on the release screen. The countdown rises, the flight has the whole band with
+  wind and melody following speed and height, and the landing resolves before it settles back.
+- **Each throw has its own song**, seeded by the plane, so everyone watching hears the same music.
+- **Game events are musical cues** in the song's key: creases (rising with each fold), undo, start again,
+  invalid creases, keel sliders, paper choice, opening records, tapping a plane, another player's plane
+  arriving, distance milestones, loops, the peak, dives, the landing (brighter for a record, softer for a
+  short hop), points rows, personal bests, the total, and your next plane becoming ready.
 
 ```sh
-python3 tools/build-music.py Fade_to_Wind_Stems.zip assets/music   # rebuild phrase files (ffmpeg, numpy)
-python3 -m http.server 8090 & node tools/preview-music.mjs out.mp3  # render a scripted session to listen to
+python3 -m http.server 8090 & node tools/preview-music.mjs out.mp3   # render a scripted session to listen to
 ```
 
 ## Deploy
@@ -109,11 +111,10 @@ src/main.js          boot
 src/core/            physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
 src/ui/              app shell (tabs.js), fold, wings, papers + swatch picker, shapes, release, board
 src/world/           3D field: scene, plane meshes, throw events
-src/audio/           music API and sound effects, stem mixer, phrase sequencer
+src/audio/           music API, procedural engine and event cues, music theory
 src/net/             store adapter (local / Firebase), throw limit, pilot names, plane doc
-assets/music/        generated phrase files + manifest
 tests/               unit, smoke, rules, adapter and multiplayer tests
-tools/               golden-file generator, music builder and preview
+tools/               golden-file generator, music preview renderer
 legacy/              the original single-file prototype
 ```
 
