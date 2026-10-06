@@ -69,6 +69,10 @@ test('planes carry no text or images: extra fields and off-palette colours are r
   await assertFails(throwBatch(db('alice'),'alice','p1',{plane:{paper:'#FF0000'}}));
   await assertFails(throwBatch(db('alice'),'alice','p1',{pilot:{nick:'anything'}}));
 });
+test('patterned papers from the fixed set are accepted',async()=>{
+  await assertSucceeds(throwBatch(db('alice'),'alice','p1',{plane:{paper:'graph'}}));
+  await assertSucceeds(throwBatch(db('bob'),'bob','p2',{plane:{paper:'waves'}}));
+});
 test('a client-chosen timestamp is rejected',async()=>{
   await assertFails(throwBatch(db('alice'),'alice','p1',{plane:{at:Timestamp.fromMillis(0)}}));
 });

@@ -67,7 +67,6 @@ dl.spec dt{color:var(--graphite)}dl.spec dd{margin:0;font-weight:650;font-varian
 .pal{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center}
 .pal button{width:32px;height:32px;border-radius:50%;border:2px solid var(--card);outline:1.5px solid var(--faint);cursor:pointer}
 .pal button[aria-pressed="true"]{outline:3px solid var(--ink)}
-.papers button{border-radius:4px}
 /* results */
 .big{font-stretch:125%;font-weight:850;font-size:clamp(36px,8vw,60px);line-height:1;letter-spacing:-.02em}
 .unit{font-size:.42em;font-weight:600;color:var(--graphite);margin-left:3px}
@@ -144,3 +143,12 @@ body:not([data-mode="field"]) #empty,body:not([data-mode="field"]) #card,body:no
 .linkbtn[disabled]{color:var(--faint);text-decoration:none;cursor:default}
 #board .recs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #board .rec{padding:8px 10px}#board .rec .v{font-size:20px}#board .rec small{font-size:12px}
+/* paper swatches: little sheets with a dog-eared corner */
+.papers{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:8px}
+.papers .swatch{position:relative;width:100%;aspect-ratio:1;border:0;border-radius:3px;background-size:48px 48px;cursor:pointer;padding:0;
+ box-shadow:0 1px 2px rgba(13,21,32,.25),0 0 0 1px rgba(13,21,32,.12);transition:transform .12s ease,box-shadow .12s ease}
+.papers .swatch::after{content:"";position:absolute;right:0;top:0;width:28%;height:28%;border-radius:0 3px 0 0;
+ background:linear-gradient(225deg,var(--card) 50%,rgba(13,21,32,.18) 50%,rgba(255,255,255,.35) 100%)}
+.papers .swatch[aria-pressed="true"]{transform:translateY(-3px) rotate(-2deg);box-shadow:0 4px 10px rgba(13,21,32,.3),0 0 0 2.5px var(--ink)}
+.papers .swatch:focus-visible{outline:3px solid var(--pen);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.papers .swatch{transition:none}}

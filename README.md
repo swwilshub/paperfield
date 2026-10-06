@@ -1,6 +1,6 @@
 # One Sheet
 
-Fold an A4 paper plane, set the wings, pick a paper colour, release it. There are no drawings or plane names: the only thing a player leaves behind is the plane. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
+Fold an A4 paper plane, set the wings, pick a paper (colours and patterns: graph, notebook, kraft, waves…), release it. There are no drawings or plane names: the only thing a player leaves behind is the plane. A fixed automatic thrower flies it through a deterministic physics model, and every plane stays where it landed.
 
 Status: **M2**. Shared multiplayer field on Firebase (project `paperfield-ab53c`); falls back to local play if Firebase is unreachable.
 
@@ -54,13 +54,13 @@ leaderboard live in Firestore, and new throws appear for everyone as they happen
 reached, the game falls back to local play.
 
 - **No player-written text.** Pilots get a generated name from their anonymous ID (e.g. "Amber Heron");
-  planes are labelled by paper colour.
+  planes are labelled by their paper (18 fixed colours and patterns; `src/ui/papers.js`).
 - **Throw limit scales with activity** (`src/net/cooldown.js`): (pilots this hour + planes in the last
   10 min ÷ 2 − 2) minutes, between 1 and 60. A quiet field allows one a minute. The rules enforce a
   50-second floor.
 - **Security rules** (`firestore.rules`): a throw must create the plane and update the pilot in one batch;
-  the score must rise by exactly the plane's points (capped at 1500); exact plane shape, palette colours
-  only, server timestamps only; only admins (`admins/{uid}`, added by hand) can delete planes.
+  the score must rise by exactly the plane's points (capped at 1500); exact plane shape, papers from the
+  fixed set only, server timestamps only; only admins (`admins/{uid}`, added by hand) can delete planes.
   Points are still computed in the browser, so a determined cheater could claim up to 1500 a throw.
 
 ### Setup (about 10 minutes, free Spark plan)
@@ -113,7 +113,7 @@ One-time setup: **Settings → Pages → Build and deployment → Source: GitHub
 ```
 index.html              markup; loads styles/main.css and src/main.js
 src/core/               physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
-src/ui/                 state.js (shared state), tabs (app shell: modes, sheets, bottom dock), fold, wings, paper (colour picker), shapes (plane outlines), release, board
+src/ui/                 state.js (shared state), tabs (app shell: modes, sheets, bottom dock), fold, wings, papers (paper set + pattern tiles), paper (swatch picker), shapes (plane outlines), release, board
 src/world/              scene.js (renderer, camera, loop), planes.js (meshes, picking), event.js (throw replay)
 src/audio/              music.js (API, sound effects), mixer.js (stem player), sequencer.js (generative arrangement)
 assets/music/           phrase files + manifest.json (generated; see Music)

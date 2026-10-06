@@ -1,8 +1,15 @@
-// ===== paper colour =====
-import {S,$,PAPERS,PAPER_NAMES} from './state.js';
+// ===== paper picker =====
+// Swatches for the fixed set of papers (papers.js): plain colours and printed patterns.
+import {S,$} from './state.js';
+import {PAPERS,tileCanvas} from './papers.js';
 import {renderGo} from './release.js';
 
-// Paper colour: a fixed palette (there is no free drawing, so nothing on a plane is user-made art).
-PAPERS.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.style.background=c;b.setAttribute('aria-label','paper '+PAPER_NAMES[i].toLowerCase());b.setAttribute('aria-pressed',i===0);
-  b.onclick=()=>{S.paper=c;$('papers').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderGo();};$('papers').appendChild(b);});
-
+const box=$('papers');
+function select(id){S.paper=id;box.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.paper===id));
+  const p=PAPERS.find(q=>q.id===id);$('paperName').textContent=p?p.name:'';renderGo();}
+for(const p of PAPERS){const b=document.createElement('button');b.type='button';b.className='swatch';b.dataset.paper=p.id;
+  b.title=p.name;b.setAttribute('aria-label','paper '+p.name.toLowerCase());
+  // ~2.4 px per mm, so a swatch shows a 20 mm patch at real scale.
+  b.style.backgroundColor=p.base;if(p.pattern)b.style.backgroundImage=`url(${tileCanvas(p,96).toDataURL()})`;
+  b.onclick=()=>select(p.id);box.appendChild(b);}
+select(S.paper);

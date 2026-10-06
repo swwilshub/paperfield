@@ -1,20 +1,26 @@
 // ===== 3D world: plane meshes, resting poses, picking, card and live toast =====
 import {$,net,app,SCALE,esc,ago,nm,paperOf,planeLabel} from '../ui/state.js';
 import {pieces,thumbnail} from '../ui/shapes.js';
+import {TILE_MM,tileCanvas} from '../ui/papers.js';
 
 export function initPlanes(W){const {THREE,scene,cam,canvas}=W;
   const items=new Map();const flights=[];const blobGeo=new THREE.CircleGeometry(1,24);const blobMat=new THREE.MeshBasicMaterial({color:0x15243a,transparent:true,opacity:0.16,depthWrite:false});
   const ray=new THREE.Raycaster();const group=new THREE.Group();scene.add(group);
-  function buildMesh(p){const sc=SCALE/1000,dih=p.dih*Math.PI/180,semi=Math.max(p.semi,20);const {wing,keel,len}=pieces(p);const wp=[],wu=[],kp=[],lp=[];
-    for(const side of [1,-1])for(const q of wing){const V=q.map(([e,s])=>({v:[(p.sCG-s)*sc,e*Math.sin(dih)*sc,side*e*Math.cos(dih)*sc],u:[0.5+side*e/(2*semi),1-s/len]}));
+  function buildMesh(p){const sc=SCALE/1000,dih=p.dih*Math.PI/180;const {wing,keel,len}=pieces(p);const wp=[],wu=[],kp=[],lp=[];
+    for(const side of [1,-1])for(const q of wing){const V=q.map(([e,s])=>({v:[(p.sCG-s)*sc,e*Math.sin(dih)*sc,side*e*Math.cos(dih)*sc],u:[side*e/TILE_MM,(len-s)/TILE_MM]}));
       for(let i=1;i<V.length-1;i++)for(const k of [0,i,i+1]){wp.push(...V[k].v);wu.push(...V[k].u);}for(let i=0;i<V.length;i++)lp.push(...V[i].v,...V[(i+1)%V.length].v);}
     for(const q of keel){const V=q.map(([d,s])=>[(p.sCG-s)*sc,-d*sc,0]);for(let i=1;i<V.length-1;i++)kp.push(...V[0],...V[i],...V[i+1]);}
-    const g=new THREE.Group();const paper=new THREE.Color(paperOf(p));
+    const g=new THREE.Group();const def=paperOf(p),paper=new THREE.Color(def.base);
     if(wp.length){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(wp,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(wu,2));geo.computeVertexNormals();
-      g.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({side:THREE.DoubleSide,color:paper})));
+      g.add(new THREE.Mesh(geo,def.pattern?new THREE.MeshLambertMaterial({side:THREE.DoubleSide,map:paperTexture(def)}):new THREE.MeshLambertMaterial({side:THREE.DoubleSide,color:paper})));
       const lg=new THREE.BufferGeometry();lg.setAttribute('position',new THREE.Float32BufferAttribute(lp,3));g.add(new THREE.LineSegments(lg,new THREE.LineBasicMaterial({color:0x15243a,transparent:true,opacity:0.28})));}
     if(kp.length){const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(kp,3));geo.computeVertexNormals();g.add(new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:paper,side:THREE.DoubleSide})));}
     g.rotation.order='YZX';g.traverse(o=>{o.userData.pid=p.id;});return g;}
+  // One shared texture per patterned paper; wing UVs are in tiles (TILE_MM), so the pattern is real size.
+  const texCache=new Map();
+  function paperTexture(def){if(texCache.has(def.id))return texCache.get(def.id);
+    const t=new THREE.CanvasTexture(tileCanvas(def,256));t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=W.R.capabilities.getMaxAnisotropy();
+    texCache.set(def.id,t);return t;}
   function trAt(p,i){const a=p.tr;return[a[4*i],a[4*i+1],a[4*i+2],a[4*i+3]];}
   function sample(p,t){const n=p.tr.length/4;let i=0;while(i<n-2&&p.tr[4*(i+1)]<=t)i++;const a=trAt(p,i),b=trAt(p,Math.min(n-1,i+1));const f=b[0]>a[0]?Math.max(0,Math.min(1,(t-a[0])/(b[0]-a[0]))):1;
     return[a[1]+f*(b[1]-a[1]),a[2]+f*(b[2]-a[2]),a[3]+f*(b[3]-a[3])];}

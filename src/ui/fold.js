@@ -35,7 +35,7 @@ export function polyPts(pl){return pl.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)
 export function renderFold(){const W=S.W,L=S.L,cx=W/2,pad=12;const polys=curPolys();fsvg.setAttribute('viewBox',`${-pad} ${-pad} ${W+2*pad} ${L+2*pad}`);
   let g=`<rect x="${-pad}" y="${-pad}" width="${W+2*pad}" height="${L+2*pad}" fill="transparent"/><g id="flipG" transform="translate(0 ${L}) scale(1 -1)">`;
   g+=`<rect x="0" y="0" width="${W}" height="${L}" fill="none" stroke="var(--faint)" stroke-dasharray="3 4" stroke-width="0.8"/>`;
-  for(const pl of polys)g+=`<polygon points="${polyPts(pl)}" fill="${S.paper}" fill-opacity="0.001" stroke="none"/>`;
+  for(const pl of polys)g+=`<polygon points="${polyPts(pl)}" fill="#fff" fill-opacity="0.001" stroke="none"/>`;
   for(const pl of polys)g+=`<polygon points="${polyPts(pl)}" fill="var(--layer)" stroke="var(--ink)" stroke-width="1.1" stroke-linejoin="round"/>`;
   g+=`<line x1="${cx}" y1="0" x2="${cx}" y2="${L}" stroke="var(--faint)" stroke-width="0.8" stroke-dasharray="1 3"/>`;
   const pd=S.pending;

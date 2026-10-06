@@ -24,7 +24,7 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
     const P=it.g.position;const d=cam.position.clone().sub(P);O.tx=P.x;O.ty=0;O.tz=P.z;O.r=Math.max(4,d.length());O.el=Math.max(0.05,Math.asin(Math.max(-1,Math.min(1,d.y/O.r))));O.az=Math.atan2(d.z,d.x);
     cam.fov=50;cam.updateProjectionMatrix();W.ev=null;wrap.classList.remove('event');if(app.ui)app.ui.eventMode(false);setTimeout(W.resize,30);$('skip').hidden=true;$('flightHud').style.display='none';$('callout').className='';$('eventInfo').innerHTML='';$('reveal').hidden=true;audio.idle();if(!silent)W.showCard(it.p);}
   $('skip').onclick=()=>{const ev=W.ev;if(!ev)return;if(ev.phase==='land'){endEvent();return;}land();};
-  function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);ev.phase='land';ev.t=0;audio.land();if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p));
+  function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);ev.phase='land';ev.t=0;audio.land();if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p).base);
     const far=p.style!=='float';callout(far?p.dist.toFixed(1)+' m':p.time.toFixed(1)+' s',true);
     $('flightHud').innerHTML=`<span class="hb num">${p.dist.toFixed(1)} m</span><span class="num">${p.time.toFixed(1)} s · peak ${p.maxZ.toFixed(1)} m</span>`;
     if(ev.opts.onLand)setTimeout(()=>{if(W.ev&&W.ev.it===it)ev.opts.onLand();},900);}

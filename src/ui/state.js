@@ -1,15 +1,15 @@
 // Shared app state, constants and small helpers. No rendering here.
 import {applyFolds} from '../core/folds.js';
+import {paperDef} from './papers.js';
 
 export const $=id=>document.getElementById(id);
 export const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 export const SCALE=8,GUIN={dist:88.318,time:29.2};
-export const PAPERS=['#FFFFFF','#FFF3B0','#CDE7FF','#FFD6DE','#D6F5DF','#E6E0FF'];
 // Only these colours are ever shown, whatever a stored plane says.
-export const paperOf=p=>PAPERS.includes(p&&p.paper)?p.paper:'#FFFFFF';
-export const PAPER_NAMES=['White','Yellow','Blue','Pink','Green','Lilac'];
-// Planes have no player-written names: they are labelled by paper colour. Any stored `name` is ignored.
-export const planeLabel=p=>PAPER_NAMES[PAPERS.indexOf(paperOf(p))]+' plane';
+// The plane's paper (see papers.js); unknown papers show as white.
+export const paperOf=p=>paperDef(p&&p.paper);
+// Planes have no player-written names: they are labelled by their paper. Any stored `name` is ignored.
+export const planeLabel=p=>paperOf(p).name+' plane';
 // Trim is fixed (no controls): elevator 6°, wing angle 5°, thrower aims for distance, 80 gsm paper.
 export const S={orient:'portrait',W:210,L:297,folds:[],actions:[],pending:null,drag:null,hN:15,hT:25,elev:6,dih:5,style:'far',gsm:80,paper:'#FFFFFF'};
 // Mirror of what the store has told us. `store` is the adapter (src/net/store.js).

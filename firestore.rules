@@ -22,7 +22,7 @@ service cloud.firestore {
               'heading', 'roll', 'tr', 'points', 'throws', 'official', 'V', 'gamma', 'semi', 'yTip',
               'yMin', 'sCG', 'SM', 'Vcap', 'dist', 'time', 'maxZ', 'loops'];
     }
-    // Planes carry no player-written text or images: exact keys, palette colours, bounded numbers.
+    // Planes carry no player-written text or images: exact keys, papers from the fixed set, bounded numbers.
     function validPlane(d) {
       return d.keys().hasOnly(planeKeys()) && d.keys().hasAll(planeKeys())
         && d.uid == request.auth.uid
@@ -32,7 +32,8 @@ service cloud.firestore {
         && d.tr is list && d.tr.size() >= 8 && d.tr.size() <= 1000
         && d.throws is list && d.throws.size() == 3
         && d.official in [0, 1, 2]
-        && d.paper in ['#FFFFFF', '#FFF3B0', '#CDE7FF', '#FFD6DE', '#D6F5DF', '#E6E0FF']
+        // the fixed paper set in src/ui/papers.js (tests/papers.test.js keeps the two in step)
+        && d.paper in ['#FFFFFF', '#FFF3B0', '#CDE7FF', '#FFD6DE', '#D6F5DF', '#E6E0FF', 'cream', 'kraft', 'red', 'midnight', 'graph', 'lined', 'dots', 'news', 'waves', 'polka', 'contour', 'chevron']
         && d.style in ['far', 'float']
         && d.gsm in [80, 100]
         && d.points is int && d.points >= 0 && d.points <= 1500
