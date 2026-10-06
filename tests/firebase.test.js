@@ -39,6 +39,9 @@ test('two players: a throw by one appears live for the other, and the rules acce
   await waitFor(()=>board[ia.uid]&&board[ia.uid].score===150);
   await waitFor(()=>a.me()&&a.me().lastPlane===id);
   assert.equal(b.nameOf(ia.uid),a.nameOf(ia.uid),'same generated name everywhere');
+  // Shared links look a plane up by id.
+  const one=await b.getPlane(id);assert.equal(one.id,id);assert.equal(one.pid,ia.uid);assert.ok(Array.isArray(one.tr)&&Array.isArray(one.throws[0]));
+  assert.equal(await b.getPlane('no-such-plane'),null);
 
   // The first 3 planes have no wait: the 2nd and 3rd go straight through; a 4th straight away breaks the floor.
   for(const n of [2,3]){const idn=id+n;const d=planeDoc(idn,ia.uid,build,R,100,Date.now());

@@ -52,4 +52,11 @@ export async function createWorld(){let THREE,R;const canvas=$('world');
     if(W.ev)W.updateEvent(dt);else placeCam();
     R.render(scene,cam);}
   requestAnimationFrame(loop);
-  return{add:W.add,focus:W.focus,event:W.event,preview:W.preview,foldUp:W.foldUp,busy:()=>!!W.ev,end:()=>W.endEvent()};}
+  // A photo of a plane on the ground: frame it, render once, copy the frame before the browser clears it.
+  W.snapshot=id=>{const it=W.items.get(id);if(!it)return null;const P=it.g.position;
+    const pos=cam.position.clone(),q=cam.quaternion.clone(),fov=cam.fov;
+    const d=new THREE.Vector3(pos.x-P.x,0,pos.z-P.z);if(d.lengthSq()<1e-6)d.set(-1,0,-1);d.normalize();
+    cam.position.set(P.x+d.x*6.5,2.8,P.z+d.z*6.5);cam.lookAt(P.x,0.2,P.z);cam.fov=50;cam.updateProjectionMatrix();
+    R.render(scene,cam);const c=document.createElement('canvas');c.width=canvas.width;c.height=canvas.height;c.getContext('2d').drawImage(canvas,0,0);
+    cam.position.copy(pos);cam.quaternion.copy(q);cam.fov=fov;cam.updateProjectionMatrix();return c;};
+  return{add:W.add,focus:W.focus,event:W.event,preview:W.preview,foldUp:W.foldUp,snapshot:W.snapshot,busy:()=>!!W.ev,end:()=>W.endEvent()};}

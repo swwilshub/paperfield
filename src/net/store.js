@@ -11,6 +11,7 @@
 //   savePlane(id, doc, pilot) -> Promise<void>. Writes the plane and the updated pilot doc together.
 //                           Rejects with an Error whose `code` is one of
 //                           'quota_exceeded' | 'permission_denied' | 'cooldown' | other.
+//   getPlane(id)         -> Promise<plane or null>. One plane by id (for shared links).
 //   nameOf(uid)          -> display name string, or '' if unknown.
 //
 // The UI only talks to this interface. When no backend is reachable it falls back to local play.

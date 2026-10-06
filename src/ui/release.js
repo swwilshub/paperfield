@@ -5,6 +5,7 @@ import {throwPlane} from '../core/thrower.js';
 import {planeDoc,results,scorePoints} from '../net/planedoc.js';
 import {geometry} from '../core/geometry.js';
 import {renderBoard,updateMe} from './board.js';
+import {sharePlane,sharePhoto,shareButton} from './share.js';
 
 export function myPilot(){return net.uid?net.pilots[net.uid]:null;}
 export function cooldown(){const p=myPilot();return cooldownLeft(p&&p.last,net.planes.values(),Date.now(),p?p.planes:0);}
@@ -46,16 +47,19 @@ async function doRelease(){$('busy').style.display='grid';await new Promise(r=>s
       await net.store.savePlane(id,doc,body);net.pilots[net.uid]=Object.assign({},net.pilots[net.uid],body);saved=true;}
     catch(e){const c=e&&e.code;saveErr=c==='quota_exceeded'?(net.mode==='local'?'This browser\'s storage is full, so this plane could not be saved.':'The field is full, so this plane could not be saved.'):c==='permission_denied'?'You don\'t have permission to add planes here.':c==='cooldown'?'Your next plane isn\'t ready yet, so this one wasn\'t saved.':'Saving failed ('+(c||'error')+').';if(c==='permission_denied')net.canWrite=false;}}
   $('busy').style.display='none';
-  const p=Object.assign({id,pid:net.uid||'local'},doc);
+  const p=Object.assign({id,pid:net.uid||'local'},doc);if(!saved)p.unsaved=true;   // not in the store, so no link to it
   $('result').innerHTML='<p class="sub">Watch the field.</p>';
   // The sheet goes, and your plane folds up in front of you before the countdown.
   if(app.ui)app.ui.eventMode(true);if(app.world.foldUp)await app.world.foldUp(previewSpec());else await new Promise(r=>setTimeout(r,300));
   const recordDist=rec.dist?rec.dist.dist:0;net.planes.set(id,p);
-  app.world.event(p,{countdown:true,recordDist,onLand:()=>{renderResult(p,pts,total,saved,saveErr,R);renderBoard();updateMe();renderGo();reveal(p,pts,total);}});}
-export function reveal(p,pts,total){const el=$('reveal');const far=p.style!=='float';el.hidden=false;
+  app.world.event(p,{countdown:true,recordDist,onLand:()=>{renderResult(p,pts,total,saved,saveErr,R);renderBoard();updateMe();renderGo();reveal(p,pts,total,saved);}});}
+export function reveal(p,pts,total,saved){const el=$('reveal');const far=p.style!=='float';el.hidden=false;
   el.innerHTML=`<div class="rv-head"><div class="rv-name">${esc(planeLabel(p))}</div><div class="big num">${far?p.dist.toFixed(1):p.time.toFixed(1)}<span class="unit">${far?'m':'s'}</span></div>
    <div class="sub">${far?`${p.time.toFixed(1)} s in the air`:`${p.dist.toFixed(1)} m forward`} · peak ${p.maxZ.toFixed(1)} m${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div></div>
-   <table class="rv-t"><tbody></tbody></table><div class="rv-total num">0</div><div class="btns" style="justify-content:center"><button class="btn dockmain" type="button" id="rvClose">Back to the field</button></div>`;
+   <table class="rv-t"><tbody></tbody></table><div class="rv-total num">0</div><div class="btns rv-share" style="justify-content:center">${app.world.snapshot?'<button class="btn" type="button" id="rvPhoto">Photo</button>':''}${saved?'<button class="btn" type="button" id="rvShare">Share</button>':''}</div>
+   <div class="btns" style="justify-content:center"><button class="btn dockmain" type="button" id="rvClose">Back to the field</button></div>`;
+  // A link only works for a plane that was saved; a photo works for any plane.
+  const ph=el.querySelector('#rvPhoto'),sh=el.querySelector('#rvShare');if(ph)shareButton(ph,()=>sharePhoto(p));if(sh)shareButton(sh,()=>sharePlane(p));
   const tb=el.querySelector('tbody');let i=0,run=0;const tot=el.querySelector('.rv-total');
   const next=()=>{if(el.hidden)return;if(i<pts.length){const q=pts[i];tb.insertAdjacentHTML('beforeend',`<tr class="${q[1]>=100?'rec':''}"><td>${esc(q[0])}</td><td class="r">+${q[1]}</td></tr>`);run+=q[1];tot.textContent=run+' points';if(/^Personal best/.test(q[0]))app.audio.cue('pb');else app.audio.blip(i,q[1]>=100);i++;setTimeout(next,reduceMotion?60:420);}
     else{tot.classList.add('done');app.audio.total();}};

@@ -19,6 +19,8 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   3. **Wings**: set the keel line, which decides what hangs down and what becomes wing.
   4. **Release**: your plane turns slowly above the sheet. Release it and the sheet folds up in front of you, then the countdown starts.
 - **The throw** plays as an event: countdown, flight, landing, then a points breakdown.
+- **Sharing**: every plane has a link (`?plane=<id>`) that opens the field on that plane where it landed, and a
+  Photo button that saves a captioned picture of it on the ground. Links carry only the plane's id, not its design.
 - **Throw limit**: your first 3 planes have no wait. After that it scales with how busy the field is: one a minute when it's quiet, stretching towards
   one an hour when it's packed (`src/net/cooldown.js`).
 - **Pilots** get a generated name such as "Amber Heron"; planes are named by paper, e.g. "Graph paper plane".
@@ -111,7 +113,7 @@ index.html           markup: field, sheets, dock
 styles/main.css      design tokens and layout
 src/main.js          boot
 src/core/            physics: folds, geometry, aero, sim, thrower (no DOM; runs in Node)
-src/ui/              app shell (tabs.js), fold, wings, papers + swatch picker, shapes, release, board
+src/ui/              app shell (tabs.js), fold, wings, papers + swatch picker, shapes, release, board, share (links + photos)
 src/world/           3D field: scene, plane meshes, throw events, release preview + fold-up (preview, foldanim)
 src/audio/           music API, procedural engine and event cues, music theory
 src/net/             store adapter (local / Firebase), throw limit, pilot names, plane doc

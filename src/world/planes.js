@@ -2,6 +2,7 @@
 import {$,net,app,SCALE,esc,ago,nm,paperOf,planeLabel} from '../ui/state.js';
 import {pieces,thumbnail} from '../ui/shapes.js';
 import {TILE_MM,tileCanvas} from '../ui/papers.js';
+import {sharePlane,sharePhoto,shareButton} from '../ui/share.js';
 
 export function initPlanes(W){const {THREE,scene,cam,canvas}=W;
   const items=new Map();const flights=[];const blobGeo=new THREE.CircleGeometry(1,24);const blobMat=new THREE.MeshBasicMaterial({color:0x15243a,transparent:true,opacity:0.16,depthWrite:false});
@@ -34,8 +35,9 @@ export function initPlanes(W){const {THREE,scene,cam,canvas}=W;
   function pick(e){const r=canvas.getBoundingClientRect();const v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(v,cam);const hit=ray.intersectObjects(group.children,true)[0];
     if(hit&&hit.object.userData.pid){const p=net.planes.get(hit.object.userData.pid);if(p)showCard(p);}else hideCard();}
   function showCard(p){app.audio.cue('card',{dist:p.dist});const c=$('card');c.style.display='flex';c.innerHTML=`<button class="x" aria-label="Close">×</button><img alt="" src="${thumbnail(p)}"><div><b>${esc(planeLabel(p))}</b><div class="sub" style="font-size:13px">by ${esc(nm(p.pid))}, ${ago(p.at)}</div>
-     <div class="num" style="font-size:14px;font-weight:700;margin-top:4px">${p.dist} m · ${p.time} s · ${p.maxZ} m high${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div><button class="btn" style="margin-top:6px;padding:5px 10px;font-size:13px" type="button">Watch the throw</button></div>`;
-    c.querySelector('.x').onclick=hideCard;c.querySelector('.btn').onclick=()=>{app.audio.unlock();hideCard();W.event(p,{countdown:false});};}
+     <div class="num" style="font-size:14px;font-weight:700;margin-top:4px">${p.dist} m · ${p.time} s · ${p.maxZ} m high${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div><div class="cardBtns"><button class="btn" data-act="watch" type="button">Watch the throw</button>${p.unsaved?'':'<button class="btn" data-act="share" type="button">Share</button>'}<button class="btn" data-act="photo" type="button">Photo</button></div></div>`;
+    c.querySelector('.x').onclick=hideCard;c.querySelector('[data-act="watch"]').onclick=()=>{app.audio.unlock();hideCard();W.event(p,{countdown:false});};
+    const sh=c.querySelector('[data-act="share"]');if(sh)shareButton(sh,()=>sharePlane(p));shareButton(c.querySelector('[data-act="photo"]'),()=>sharePhoto(p));}
   function hideCard(){$('card').style.display='none';}
   let toastT=null;function liveToast(it){app.audio.cue('arrival');const t=$('toast');t.innerHTML=`<b>${esc(nm(it.p.pid))}</b> just threw <b>${esc(planeLabel(it.p))}</b> <button class="btn" type="button">Watch</button>`;t.hidden=false;
     t.querySelector('button').onclick=()=>{app.audio.unlock();t.hidden=true;const i=flights.indexOf(it);if(i>=0)flights.splice(i,1);W.event(it.p,{countdown:false});};clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},12000);}

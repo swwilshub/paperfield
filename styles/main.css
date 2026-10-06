@@ -155,3 +155,5 @@ body:not([data-mode="field"]) #empty,body:not([data-mode="field"]) #card,body:no
 @media (prefers-reduced-motion:reduce){.papers .swatch{transition:none}}
 #papers h4{margin:12px 0 0;font-size:13px;color:var(--graphite);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
 #designer h3 output{font-weight:650;color:var(--graphite);margin-left:6px}
+#card .cardBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#card .cardBtns .btn{padding:5px 10px;font-size:13px}
+#reveal .rv-share{margin-bottom:8px}#reveal .rv-share:empty{display:none}

@@ -67,6 +67,8 @@ export function createFirebaseStore(config,opts){opts=opts||{};
       b.set(F.fs.doc(db,'pilots',uid),{score:pilot.score,planes:pilot.planes,last:now,lastPlane:id,pbDist:pilot.pbDist,pbTime:pilot.pbTime});
       try{await withTimeout(b.commit(),SAVE_TIMEOUT,'Saving');}
       catch(e){if(e.code==='timeout')return;throw err(e);}},   // offline: the SDK keeps it and syncs later
+    // One plane by id, for shared links to planes older than the newest 500.
+    async getPlane(id){const s=await F.fs.getDoc(F.fs.doc(db,'planes',id));return s.exists()?fromFirestore(id,s.data({serverTimestamps:'estimate'})):null;},
     nameOf(id){return pilotName(id);},
     uid:()=>uid,
   };

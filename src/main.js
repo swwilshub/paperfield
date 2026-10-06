@@ -9,6 +9,7 @@ import {renderBoard,updateMe} from './ui/board.js';
 import {audio} from './audio/music.js';
 import {createWorld} from './world/scene.js';
 import {openStore} from './net/store.js';
+import {linkedPlane} from './ui/share.js';
 
 app.audio=audio;
 // For tests and the console: window.oneSheet.audio.debug() shows the music stage and song.
@@ -30,7 +31,16 @@ async function connect(){
     for(const p of added){if(net.planes.has(p.id))continue;if(!Array.isArray(p.tr)||!Array.isArray(p.folds))continue;net.planes.set(p.id,p);
       app.world.add(p,!initial&&p.pid!==net.uid&&Date.now()-p.at<10*60e3?'live':null);}
     net.ready=true;renderBoard();if(first){first=false;setInterval(renderBoard,60000);}});
+  await openLinked(store);
 }
+
+// ===== shared links =====
+// ?plane=<id> flies the camera to that plane on the ground and opens its card.
+async function openLinked(store){const id=linkedPlane();if(!id)return;
+  if(!net.planes.has(id)){let p=null;try{p=await store.getPlane(id);}catch(e){}
+    if(!p||!Array.isArray(p.tr)||!Array.isArray(p.folds)){$('ticker').textContent='That shared plane isn\'t in the field any more.';return;}
+    if(!net.planes.has(id)){net.planes.set(id,p);app.world.add(p);}}
+  app.world.focus(id);}
 
 // ===== boot =====
 initTabs();clampKeel();renderFold();renderBoard();updateMe();

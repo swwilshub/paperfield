@@ -121,3 +121,36 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await expect(page.locator('#release')).toBeDisabled();
   expect(errs).toEqual([]);
 });
+
+test('a landed plane can be photographed and shared; its link opens on the plane in the field',async({page,context})=>{
+  test.setTimeout(120e3);
+  // Use the fallbacks (download, clipboard) rather than the OS share sheet.
+  await page.addInitScript(()=>{delete Navigator.prototype.share;delete Navigator.prototype.canShare;});
+  await context.grantPermissions(['clipboard-read','clipboard-write']);
+  const errs=watchConsole(page);await page.goto(LOCAL);
+  await page.evaluate(()=>localStorage.clear());await page.reload();
+  await expect(page.locator('#me')).toContainText('plane ready');
+  await page.locator('#foldBtn').click();await page.locator('#papers button[aria-label="paper graph paper"]').click();
+  await page.locator('[data-stepdot="go"]').click();await page.locator('#release').click();
+  await expect(page.locator('#reveal')).toBeVisible({timeout:60e3});
+
+  // Photo: a PNG of the field with the plane, downloaded when the share sheet can't take files.
+  const dl=page.waitForEvent('download');await page.locator('#rvPhoto').click();const file=await dl;
+  expect(file.suggestedFilename()).toBe('one-sheet-graph-paper-plane.png');
+  const png=await file.createReadStream().then(s=>new Promise(r=>{const b=[];s.on('data',d=>b.push(d));s.on('end',()=>r(Buffer.concat(b)));}));
+  expect(png.subarray(1,4).toString()).toBe('PNG');expect(png.length).toBeGreaterThan(5000);
+
+  // Share: the link names only the plane.
+  await page.locator('#rvShare').click();await expect(page.locator('#rvShare')).toHaveText('Link copied');
+  const url=await page.evaluate(()=>navigator.clipboard.readText());
+  const id=await page.evaluate(()=>JSON.parse(localStorage.getItem('onesheet-local-v1')).planes[0].id);
+  expect(new URL(url).search).toBe('?local&plane='+id);
+
+  // Opening the link focuses that plane on the ground and opens its card, with Share and Photo.
+  await page.goto(url);
+  await expect(page.locator('#card')).toBeVisible({timeout:20e3});
+  await expect(page.locator('#card')).toContainText('Graph paper plane');
+  await expect(page.locator('#card [data-act="share"]')).toBeVisible();
+  await expect(page.locator('#card [data-act="photo"]')).toBeVisible();
+  expect(errs).toEqual([]);
+});

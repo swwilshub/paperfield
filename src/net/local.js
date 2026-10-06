@@ -37,6 +37,7 @@ export function createLocalStore(){
       const next=Object.assign({},data,{planes:data.planes.concat([Object.assign({id,pid:data.uid},doc)]),pilots:Object.assign({},data.pilots,{[data.uid]:Object.assign({lastPlane:id},pilot)})});
       if(persist)try{writeLS(next);}catch(err){const e=new Error('Local storage is full.');e.code='quota_exceeded';throw e;}
       data=next;emitPilots();},
+    async getPlane(id){return withIds(data.planes).find(p=>p.id===id)||null;},
     nameOf(uid){return pilotName(uid);}
   };
 }
