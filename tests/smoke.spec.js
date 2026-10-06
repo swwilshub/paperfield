@@ -13,7 +13,9 @@ test.beforeEach(async({page})=>{if(process.env.PW_ROUTE_EXTERNAL)await page.rout
 test.afterEach(async({page})=>{if(process.env.PW_ROUTE_EXTERNAL)await page.unrouteAll({behavior:'ignoreErrors'});});
 
 function watchConsole(page){const errs=[];
-  page.on('console',m=>{if(m.type()==='error')errs.push(m.text());});
+  // The Firestore SDK logs a slow first connection as an error, then retries on its own; that's the
+  // network, not the page. Connection itself is checked separately (the chip must not say "Local").
+  page.on('console',m=>{if(m.type()==='error'&&!/Could not reach Cloud Firestore backend/.test(m.text()))errs.push(m.text());});
   page.on('pageerror',e=>errs.push(String(e)));
   page.on('requestfailed',r=>{const f=r.failure();if(!(f&&/ERR_ABORTED/.test(f.errorText)))errs.push('request failed: '+r.url()+' '+(f&&f.errorText));});
   return errs;}
