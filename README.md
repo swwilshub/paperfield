@@ -19,7 +19,7 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   3. **Wings**: set the keel line, which decides what hangs down and what becomes wing.
   4. **Release**: your plane turns slowly above the sheet. Release it and the sheet folds up in front of you, then the countdown starts.
 - **The throw** plays as an event: countdown, flight, landing, then a points breakdown.
-- **Throw limit** scales with how busy the field is: one a minute when it's quiet, stretching towards
+- **Throw limit**: your first 3 planes have no wait. After that it scales with how busy the field is: one a minute when it's quiet, stretching towards
   one an hour when it's packed (`src/net/cooldown.js`).
 - **Pilots** get a generated name such as "Amber Heron"; planes are named by paper, e.g. "Graph paper plane".
 
@@ -64,7 +64,7 @@ for everyone live. If Firebase can't be reached, the game falls back to local pl
 
 - A throw is one batch: the plane is created and the pilot updated together, or neither.
 - The score must rise by exactly the plane's points; plane docs must have the exact shape, a paper from
-  the fixed set and server timestamps; a 50-second floor between throws.
+  the fixed set and server timestamps; a 50-second floor between throws after a pilot's first 3 planes.
 - Only admins (`admins/{uid}`, added by hand) can delete planes.
 - Known gap: points are computed in the browser, so a cheater could claim up to the 1500 cap per throw.
 

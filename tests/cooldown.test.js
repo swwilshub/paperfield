@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {fieldActivity,waitMs,cooldownLeft,MIN_WAIT,MAX_WAIT} from '../src/net/cooldown.js';
+import {fieldActivity,waitMs,cooldownLeft,freeLeft,FREE_PLANES,MIN_WAIT,MAX_WAIT} from '../src/net/cooldown.js';
 
 const NOW=Date.UTC(2026,9,5,12);const min=60e3;
 const plane=(pid,agoMin)=>({pid,at:NOW-agoMin*min});
@@ -37,4 +37,11 @@ test('cooldownLeft shrinks when the field quietens',()=>{
   assert.equal(cooldownLeft(mine,[plane('me',5)],NOW),0,'alone: 5 min ago is long enough');
   assert.equal(cooldownLeft(NOW-30e3,[plane('me',0.5)],NOW),30e3,'alone: 30 s after a throw, 30 s left');
   assert.equal(cooldownLeft(null,busy,NOW),0,'first plane is always allowed');
+});
+test('the first 3 planes have no wait, then the limit applies',()=>{
+  const busy=Array.from({length:20},(_,i)=>plane('p'+i,15));const just=NOW-5e3;
+  assert.equal(FREE_PLANES,3);
+  for(const n of [0,1,2])assert.equal(cooldownLeft(just,busy,NOW,n),0,`after ${n} planes: no wait`);
+  assert.ok(cooldownLeft(just,busy,NOW,3)>0,'after 3 planes: the timer starts');
+  assert.deepEqual([0,1,2,3,9].map(freeLeft),[3,2,1,0,0]);
 });

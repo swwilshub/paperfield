@@ -23,12 +23,11 @@ test('a throw by one player appears live for another',async({browser,playwright}
   await expect(B.page.locator('#toast')).toContainText('just threw',{timeout:20e3});
   await expect(B.page.locator('#toast')).toContainText('Green plane');
 
-  // A: the flight plays, it's saved to the shared field, and the next plane is rate-limited.
-  // (Checked straight away: on a quiet field the limit is only a minute.)
+  // A: the flight plays, it's saved to the shared field, and the next plane is free (first 3 have no wait).
   await expect(A.page.locator('#reveal')).toBeVisible({timeout:60e3});
   await expect(A.page.locator('#result')).toContainText('Saved to the field',{timeout:20e3});
   await A.page.locator('#rvClose').click();await toRelease(A.page);
-  await expect(A.page.locator('#release')).toBeDisabled();
+  await expect(A.page.locator('#release')).toBeEnabled();await expect(A.page.locator('#goHint')).toContainText('2 more planes with no wait');
 
   // B: the ticker and leaderboard show A's plane under A's generated pilot name; a reload keeps it.
   await expect(B.page.locator('#ticker')).toContainText('Green plane');

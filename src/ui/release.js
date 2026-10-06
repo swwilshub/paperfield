@@ -1,13 +1,14 @@
 // ===== release =====
 import {S,$,net,app,esc,spec,reduceMotion,planeLabel} from './state.js';
-import {cooldownLeft,fieldActivity,waitMs} from '../net/cooldown.js';
+import {cooldownLeft,fieldActivity,waitMs,freeLeft,FREE_PLANES} from '../net/cooldown.js';
 import {throwPlane} from '../core/thrower.js';
 import {planeDoc,results,scorePoints} from '../net/planedoc.js';
 import {geometry} from '../core/geometry.js';
 import {renderBoard,updateMe} from './board.js';
 
 export function myPilot(){return net.uid?net.pilots[net.uid]:null;}
-export function cooldown(){const p=myPilot();return cooldownLeft(p&&p.last,net.planes.values(),Date.now());}
+export function cooldown(){const p=myPilot();return cooldownLeft(p&&p.last,net.planes.values(),Date.now(),p?p.planes:0);}
+export function freePlanes(){const p=myPilot();return freeLeft(p?p.planes:0);}
 // One line on why the wait is what it is.
 export function fieldLine(){const a=fieldActivity(net.planes.values(),Date.now());const w=Math.round(waitMs(a)/60e3);
   return `${a.pilots} pilot${a.pilots===1?'':'s'} this hour, ${a.airborne} plane${a.airborne===1?'':'s'} in the air: ${w} min between planes.`;}
@@ -21,6 +22,8 @@ export function renderGo(){const cd=cooldown();const G=geometry(spec(),2);
   else if(!net.store)hint='Not connected to the shared field, so this plane will fly here but won\'t be saved.';
   else if(cd>0&&net.limit)hint=`Your next plane is ready in ${fmtWait(cd)}. Keep folding; it'll be waiting. (${fieldLine()})`;
   else if(net.mode==='local')hint='Playing locally: your planes are saved in this browser only.';
+  const free=limited()?freePlanes():0;
+  if(free>0&&net.canWrite!==false)hint=(hint?hint+' ':'')+(free===FREE_PLANES?`Your first ${FREE_PLANES} planes have no wait.`:`${free} more plane${free===1?'':'s'} with no wait, then there's a short timer between planes.`);
   $('goHint').textContent=hint;$('release').disabled=cd>0&&limited();}
 function limited(){return !!net.store&&net.canWrite!==false&&net.limit;}
 // Every few seconds: refresh, and play a little motif when your next plane becomes ready.

@@ -105,11 +105,13 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await expect(page.locator('#worldWrap')).not.toHaveClass(/event/);
   await expect(page.locator('#result')).toContainText('Saved in this browser');
   await expect(page.locator('#ticker')).toContainText('Blue plane');
-  await expect(page.locator('#me')).toContainText('next plane in');
+  // The first 3 planes have no wait.
+  await expect(page.locator('#me')).toContainText('plane ready');
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('onesheet-local-v1')).planes[0]);
   expect(saved.name).toBeUndefined();expect(saved.paper).toBe('#CDE7FF');expect(saved.img).toBeUndefined();
 
-  // Persisted locally: survives a reload, and the throw limit holds.
+  // Persisted locally: survives a reload. After 3 planes the throw limit applies.
+  await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('onesheet-local-v1'));d.pilots[d.uid].planes=3;localStorage.setItem('onesheet-local-v1',JSON.stringify(d));});
   await page.reload();
   await expect(page.locator('#ticker')).toContainText('Blue plane');
   await page.locator('#openBoard').click();

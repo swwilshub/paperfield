@@ -33,7 +33,7 @@ export function createLocalStore(){
     onPlanes(cb){planeSubs.add(cb);queueMicrotask(()=>cb({added:withIds(data.planes),initial:true}));return()=>planeSubs.delete(cb);},
     async savePlane(id,doc,pilot){
       const prev=data.pilots[data.uid];
-      if(limit&&prev&&cooldownLeft(prev.last,data.planes,Date.now())>0){const e=new Error('Your next plane is not ready yet.');e.code='cooldown';throw e;}
+      if(limit&&prev&&cooldownLeft(prev.last,data.planes,Date.now(),prev.planes)>0){const e=new Error('Your next plane is not ready yet.');e.code='cooldown';throw e;}
       const next=Object.assign({},data,{planes:data.planes.concat([Object.assign({id,pid:data.uid},doc)]),pilots:Object.assign({},data.pilots,{[data.uid]:Object.assign({lastPlane:id},pilot)})});
       if(persist)try{writeLS(next);}catch(err){const e=new Error('Local storage is full.');e.code='quota_exceeded';throw e;}
       data=next;emitPilots();},
