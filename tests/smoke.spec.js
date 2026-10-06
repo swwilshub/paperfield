@@ -53,10 +53,13 @@ test('full-screen field, every action in the bottom dock; designer is fold, wing
 });
 
 test('page loads with no console errors',async({page})=>{
+  test.setTimeout(90e3);
   const errs=watchConsole(page);await page.goto(HOME);
   // The live site loads three.js and the Firebase SDK and signs in before the chip shows points.
-  await expect(page.locator('#me')).toContainText('pts',{timeout:20e3});
-  await expect(page.locator('#ticker')).not.toContainText('Loading',{timeout:20e3});
+  // From CI runners Firestore's first connection can take well over 10 s (the SDK logs it), so be patient.
+  const wait={timeout:process.env.BASE_URL?45e3:20e3};
+  await expect(page.locator('#me')).toContainText('pts',wait);
+  await expect(page.locator('#ticker')).not.toContainText('Loading',wait);
   if(process.env.BASE_URL)await expect(page.locator('#me')).not.toContainText('Local');
   await page.waitForTimeout(1500);
   expect(errs).toEqual([]);
