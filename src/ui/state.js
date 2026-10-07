@@ -13,7 +13,9 @@ export const planeLabel=p=>paperOf(p).name+' plane';
 // Trim is fixed (no controls): elevator 6°, wing angle 5°, thrower aims for distance, 80 gsm paper.
 export const S={orient:'portrait',W:210,L:297,folds:[],actions:[],pending:null,drag:null,hN:15,hT:25,elev:6,dih:5,style:'far',gsm:80,paper:'#FFFFFF'};
 // Mirror of what the store has told us. `store` is the adapter (src/net/store.js).
-export const net={store:null,uid:null,mode:null,canWrite:null,limit:true,pilots:{},planes:new Map(),loaded:false,ready:false};
+// planes: the field (shown, counted for records). hidden: planes waiting for their flight to be
+// checked, or whose saved flight the physics can't reproduce (net/verify.js); only shared links show those.
+export const net={store:null,uid:null,mode:null,canWrite:null,limit:true,pilots:{},planes:new Map(),hidden:new Map(),loaded:false,ready:false};
 // Late-bound modules, so sections can call each other without import cycles.
 export const app={world:null,audio:null};
 export const r1=v=>Math.round(v*10)/10;

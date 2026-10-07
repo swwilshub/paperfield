@@ -31,6 +31,8 @@ export function initPlanes(W){const {THREE,scene,cam,canvas}=W;
     if(!it.blob){it.blob=new THREE.Mesh(blobGeo,blobMat);it.blob.rotation.x=-Math.PI/2;it.blob.scale.set(1.6,1.1,1);scene.add(it.blob);}it.blob.position.set(it.g.position.x,0.04,it.g.position.z);it.blob.visible=true;}
   function add(p,mode){if(items.has(p.id))return items.get(p.id);let g;try{g=buildMesh(p);}catch(e){return null;}const it={p,g};items.set(p.id,it);group.add(g);
     if(mode==='live'){it.t0=performance.now();flights.push(it);liveToast(it);}else if(mode!=='event')rest(it);return it;}
+  function remove(id){const it=items.get(id);if(!it)return;items.delete(id);group.remove(it.g);if(it.blob)scene.remove(it.blob);
+    it.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});const i=flights.indexOf(it);if(i>=0)flights.splice(i,1);}
   function focus(id){const it=items.get(id);if(!it)return;if(W.ev)W.endEvent();const O=W.O;O.tx=it.g.position.x;O.tz=it.g.position.z;O.ty=0;O.r=8;O.el=0.55;W.follow=null;showCard(it.p);}
   function pick(e){const r=canvas.getBoundingClientRect();const v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);ray.setFromCamera(v,cam);const hit=ray.intersectObjects(group.children,true)[0];
     if(hit&&hit.object.userData.pid){const p=net.planes.get(hit.object.userData.pid);if(p)showCard(p);}else hideCard();}
@@ -41,4 +43,4 @@ export function initPlanes(W){const {THREE,scene,cam,canvas}=W;
   function hideCard(){$('card').style.display='none';}
   let toastT=null;function liveToast(it){app.audio.cue('arrival');const t=$('toast');t.innerHTML=`<b>${esc(nm(it.p.pid))}</b> just threw <b>${esc(planeLabel(it.p))}</b> <button class="btn" type="button">Watch</button>`;t.hidden=false;
     t.querySelector('button').onclick=()=>{app.audio.unlock();t.hidden=true;const i=flights.indexOf(it);if(i>=0)flights.splice(i,1);W.event(it.p,{countdown:false});};clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},12000);}
-  Object.assign(W,{items,flights,group,sample,setPose,poseAt,rest,add,focus,pick,showCard,hideCard,paperTexture});}
+  Object.assign(W,{items,flights,group,sample,setPose,poseAt,rest,add,remove,focus,pick,showCard,hideCard,paperTexture});}

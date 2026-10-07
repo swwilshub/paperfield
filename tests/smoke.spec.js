@@ -154,3 +154,26 @@ test('a landed plane can be photographed and shared; its link opens on the plane
   await expect(page.locator('#card [data-act="photo"]')).toBeVisible();
   expect(errs).toEqual([]);
 });
+
+test('a plane whose saved flight is impossible stays out of the field and the records; its link plays it, then crumples it',async({page})=>{
+  test.setTimeout(120e3);const errs=watchConsole(page);await page.goto(LOCAL);
+  // Throw one real plane, then plant a doctored copy of it claiming 500 m (as a doc written straight to the database would).
+  await page.evaluate(()=>localStorage.clear());await page.reload();await expect(page.locator('#me')).toContainText('plane ready');
+  await page.locator('#foldBtn').click();await page.locator('[data-stepdot="go"]').click();await page.locator('#release').click();
+  await expect(page.locator('#reveal')).toBeVisible({timeout:60e3});await page.locator('#rvClose').click();
+  const real=await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('onesheet-local-v1'));const p=d.planes[0];
+    const fake=Object.assign({},p,{id:'fake-plane',pid:'cheater',uid:'cheater',dist:500,time:24,maxZ:200,loops:12,points:1300,at:Date.now()});
+    d.planes.push(fake);localStorage.setItem('onesheet-local-v1',JSON.stringify(d));return p.dist;});
+  await page.reload();await expect(page.locator('#me')).toContainText('pts');
+  await page.locator('#openBoard').click();
+  await expect(page.locator('#recs')).toContainText(real.toFixed(1).replace(/\.0$/,'')+' m');await expect(page.locator('#recs')).not.toContainText('500 m');
+  await expect(page.locator('#ticker')).not.toContainText('500 m');
+  // Its share link still shows the flight, then the plane is crumpled and the field comes back.
+  await page.goto(LOCAL+'&plane=fake-plane');
+  await expect(page.locator('#worldWrap')).toHaveClass(/event/,{timeout:20e3});
+  await page.locator('#skip').click();await expect(page.locator('#callout')).toHaveText('Too good to be true!',{timeout:10e3});
+  await page.locator('#skip').click();
+  await expect(page.locator('#worldWrap')).not.toHaveClass(/event/);
+  await expect(page.locator('#ticker')).toContainText('too good to be true');await expect(page.locator('#card')).toBeHidden();
+  expect(errs).toEqual([]);
+});

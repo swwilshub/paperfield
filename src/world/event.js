@@ -23,8 +23,10 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
   function endEvent(silent){const ev=W.ev;if(!ev)return;const it=ev.it;if(ev.phase!=='land')W.rest(it);const O=W.O;
     const P=it.g.position;const d=cam.position.clone().sub(P);O.tx=P.x;O.ty=0;O.tz=P.z;O.r=Math.max(4,d.length());O.el=Math.max(0.05,Math.asin(Math.max(-1,Math.min(1,d.y/O.r))));O.az=Math.atan2(d.z,d.x);
     cam.fov=50;cam.updateProjectionMatrix();W.ev=null;wrap.classList.remove('event');if(app.ui)app.ui.eventMode(false);setTimeout(W.resize,30);$('skip').hidden=true;$('flightHud').style.display='none';$('callout').className='';$('eventInfo').innerHTML='';$('reveal').hidden=true;audio.idle();if(!silent)W.showCard(it.p);}
-  $('skip').onclick=()=>{const ev=W.ev;if(!ev)return;if(ev.phase==='land'){endEvent();return;}land();};
-  function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);ev.phase='land';ev.t=0;audio.land({dist:p.dist,record:ev.opts.recordDist!=null&&p.dist>ev.opts.recordDist});if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p).base);
+  $('skip').onclick=()=>{const ev=W.ev;if(!ev)return;if(ev.phase==='crumple'){crumpled();return;}if(ev.phase==='land'){endEvent();return;}land();};
+  function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);
+    if(ev.opts.extreme){ev.phase='crumple';ev.t=0;$('flightHud').style.display='none';audio.land({dist:p.dist});return;}
+    ev.phase='land';ev.t=0;audio.land({dist:p.dist,record:ev.opts.recordDist!=null&&p.dist>ev.opts.recordDist});if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p).base);
     const far=p.style!=='float';callout(far?p.dist.toFixed(1)+' m':p.time.toFixed(1)+' s',true);
     $('flightHud').innerHTML=`<span class="hb num">${p.dist.toFixed(1)} m</span><span class="num">${p.time.toFixed(1)} s · peak ${p.maxZ.toFixed(1)} m</span>`;
     if(ev.opts.onLand)setTimeout(()=>{if(W.ev&&W.ev.it===it)ev.opts.onLand();},900);}
@@ -46,10 +48,32 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
       const want=P.clone().addScaledVector(it.dir,-7).addScaledVector(it.side,2.6).add(new THREE.Vector3(0,2.2+Math.max(0,s[1])*0.15,0));if(want.y<0.6)want.y=0.6;
       cam.position.lerp(want,1-Math.exp(-dt*(ev.sim<0.7?6:3)));ev.look.lerp(P.clone().addScaledVector(it.dir,2.5),1-Math.exp(-dt*6));cam.lookAt(ev.look);
       const fov=50+Math.min(16,speed*0.7);cam.fov+=(fov-cam.fov)*(1-Math.exp(-dt*2));cam.updateProjectionMatrix();return;}
+    if(ev.phase==='crumple'){updateCrumple(dt);return;}
     if(ev.phase==='land'){const P=it.g.position;const ang=ev.t*0.22;const want=P.clone().addScaledVector(it.dir,-6*Math.cos(ang)).addScaledVector(it.side,6*Math.sin(ang)+2).add(new THREE.Vector3(0,3,0));
       cam.position.lerp(want,1-Math.exp(-dt*1.5));ev.look.lerp(P,1-Math.exp(-dt*3));cam.lookAt(ev.look);cam.fov+=(50-cam.fov)*(1-Math.exp(-dt*2));cam.updateProjectionMatrix();
       if(ev.shake>0){ev.shake-=dt;const k=ev.shake*0.5;cam.position.x+=(Math.random()-0.5)*k;cam.position.y+=(Math.random()-0.5)*k;}
       if(ev.t>25&&$('reveal').hidden)endEvent();}}
+  // ---------- too good to be true ----------
+  // A plane whose saved flight the physics can't reproduce (net/verify.js) lands, sits for a beat, gets
+  // scrunched into a paper ball and bounces off out of the field. It never stays on the ground.
+  function paperBall(p,r){const geo=new THREE.IcosahedronGeometry(r,1);const a=geo.attributes.position;
+    // The same push for every copy of a corner, so neighbouring faces stay joined (a lumpy ball, not shards).
+    for(let i=0;i<a.count;i++){const x=a.getX(i),y=a.getY(i),z=a.getZ(i),h=Math.sin(x*129.9+y*782.3+z*377.1)*43758.5453,k=0.72+0.5*(h-Math.floor(h));a.setXYZ(i,x*k,y*k,z*k);}geo.computeVertexNormals();
+    return new THREE.Mesh(geo,new THREE.MeshLambertMaterial({color:new THREE.Color(paperOf(p).base),flatShading:true}));}
+  function updateCrumple(dt){const ev=W.ev,it=ev.it,P0=it.g.position,c=ev.c||(ev.c={});const T=ev.t;
+    if(T>0.9&&!c.said){c.said=true;callout('Too good to be true!',true);audio.cue('nope');}
+    if(T>0.9&&!c.ball){c.ball=paperBall(ev.p,0.55);c.ball.position.copy(P0).setY(0.55);c.ball.scale.setScalar(0.01);scene.add(c.ball);c.from=c.ball.position.clone();c.bounce=0;}
+    if(c.ball){const k=Math.min(1,(T-0.9)/0.5);   // scrunch: the plane shrinks and twists into the ball
+      it.g.scale.setScalar(Math.max(0.001,1-k));it.g.rotation.y+=dt*9*(1-k);c.ball.scale.setScalar(0.01+k*0.99);
+      if(T>1.6){const u=T-1.6,hop=0.75,n=Math.floor(u/hop),f=(u%hop)/hop,h=2.4*Math.pow(0.72,n);   // bounce away, smaller each hop
+        if(n!==c.bounce){c.bounce=n;audio.blip(n,false);if(n===2)callout('Crumpled.');}
+        c.ball.position.copy(c.from).addScaledVector(it.dir,u*7).setY(0.55+4*h*f*(1-f));c.ball.rotation.x+=dt*8;c.ball.rotation.z+=dt*5;
+        if(u>3.2)c.ball.scale.setScalar(Math.max(0.01,1-(u-3.2)/0.6));if(u>3.8){crumpled();return;}}}
+    const look=c.ball?c.ball.position:P0;const want=P0.clone().addScaledVector(it.dir,-7).addScaledVector(it.side,4).add(new THREE.Vector3(0,3.2,0));
+    cam.position.lerp(want,1-Math.exp(-dt*1.5));ev.look.lerp(look,1-Math.exp(-dt*3));cam.lookAt(ev.look);cam.fov+=(50-cam.fov)*(1-Math.exp(-dt*2));cam.updateProjectionMatrix();}
+  function crumpled(){const ev=W.ev;if(!ev)return;const c=ev.c||{};if(c.ball){scene.remove(c.ball);c.ball.geometry.dispose();c.ball.material.dispose();}
+    const id=ev.p.id;endEvent(true);W.remove(id);$('home').onclick();   // back to the field, not out where it "landed"
+    $('ticker').textContent='That flight was too good to be true, so the plane was crumpled up.';if(ev.opts.onCrumpled)ev.opts.onCrumpled();}
   function updateBits(dt){for(let i=bits.length-1;i>=0;i--){const b=bits[i];b.life-=dt;b.v.y-=9.81*dt*0.35;b.v.multiplyScalar(1-dt*1.2);b.m.position.addScaledVector(b.v,dt);if(b.m.position.y<0.05){b.m.position.y=0.05;b.v.set(0,0,0);}
       b.m.rotation.x+=b.w.x*dt;b.m.rotation.y+=b.w.y*dt;b.m.material.opacity=Math.min(1,b.life);if(b.life<=0){scene.remove(b.m);b.m.material.dispose();bits.splice(i,1);}}}
   Object.assign(W,{event,endEvent,updateEvent,updateBits});}

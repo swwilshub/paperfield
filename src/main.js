@@ -10,6 +10,7 @@ import {audio} from './audio/music.js';
 import {createWorld} from './world/scene.js';
 import {openStore} from './net/store.js';
 import {linkedPlane} from './ui/share.js';
+import {suspicious,genuine} from './net/verify.js';
 
 app.audio=audio;
 // For tests and the console: window.oneSheet.audio.debug() shows the music stage and song.
@@ -28,18 +29,31 @@ async function connect(){
   let first=true;
   store.onPilots(({pilots})=>{net.pilots=pilots;net.ready=true;renderBoard();updateMe();renderGo();});
   store.onPlanes(({added,initial})=>{
-    for(const p of added){if(net.planes.has(p.id))continue;if(!Array.isArray(p.tr)||!Array.isArray(p.folds))continue;net.planes.set(p.id,p);
-      app.world.add(p,!initial&&p.pid!==net.uid&&Date.now()-p.at<10*60e3?'live':null);}
+    for(const p of added){if(net.planes.has(p.id)||net.hidden.has(p.id))continue;if(!Array.isArray(p.tr)||!Array.isArray(p.folds))continue;
+      const mode=!initial&&p.pid!==net.uid&&Date.now()-p.at<10*60e3?'live':null;
+      if(suspicious(p)){net.hidden.set(p.id,p);check(p,mode);continue;}
+      net.planes.set(p.id,p);app.world.add(p,mode);}
     net.ready=true;renderBoard();if(first){first=false;setInterval(renderBoard,60000);}});
   await openLinked(store);
 }
 
+// ===== too-good-to-be-true planes =====
+// Implausible flights stay hidden until re-flown (net/verify.js), one per tick so loading stays smooth.
+// Real ones join the field; the rest stay in the database but out of the field and the records.
+const queue=[];
+function check(p,mode){queue.push([p,mode]);if(queue.length===1)setTimeout(drain,50);}
+function drain(){const [p,mode]=queue.shift();if(genuine(p)&&net.hidden.delete(p.id)){net.planes.set(p.id,p);app.world.add(p,mode);renderBoard();}
+  if(queue.length)setTimeout(drain,20);}
+
 // ===== shared links =====
-// ?plane=<id> flies the camera to that plane on the ground and opens its card.
+// ?plane=<id> flies the camera to that plane on the ground and opens its card. A plane whose flight
+// isn't real still gets its flight shown, then is crumpled up and sent off the field.
 async function openLinked(store){const id=linkedPlane();if(!id)return;
-  if(!net.planes.has(id)){let p=null;try{p=await store.getPlane(id);}catch(e){}
-    if(!p||!Array.isArray(p.tr)||!Array.isArray(p.folds)){$('ticker').textContent='That shared plane isn\'t in the field any more.';return;}
-    if(!net.planes.has(id)){net.planes.set(id,p);app.world.add(p);}}
+  let p=net.planes.get(id)||net.hidden.get(id);
+  if(!p){try{p=await store.getPlane(id);}catch(e){}
+    if(!p||!Array.isArray(p.tr)||!Array.isArray(p.folds)){$('ticker').textContent='That shared plane isn\'t in the field any more.';return;}}
+  if(suspicious(p)&&!genuine(p)){net.hidden.set(id,p);app.world.event(p,{countdown:false,extreme:true});return;}
+  if(!net.planes.has(id)){net.hidden.delete(id);net.planes.set(id,p);app.world.add(p);renderBoard();}
   app.world.focus(id);}
 
 // ===== boot =====

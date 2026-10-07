@@ -23,6 +23,9 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   Photo button that saves a captioned picture of it on the ground. Links carry only the plane's id, not its design.
 - **Throw limit**: your first 3 planes have no wait. After that it scales with how busy the field is: one a minute when it's quiet, stretching towards
   one an hour when it's packed (`src/net/cooldown.js`).
+- **Too good to be true**: a plane with an implausible result (over 100 m, 15 s, 25 m up or 5 loops) is re-flown
+  with the real physics before it's shown. If its saved flight doesn't match, it stays in the database but out of the
+  field and the records; its share link plays the flight, then crumples it into a paper ball (`src/net/verify.js`).
 - **Pilots** get a generated name such as "Amber Heron"; planes are named by paper, e.g. "Graph paper plane".
 
 ## Run locally
