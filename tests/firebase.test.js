@@ -23,7 +23,6 @@ test('two players: a throw by one appears live for the other, and the rules acce
   const ia=await a.connect(),ib=await b.connect();
   assert.equal(ia.mode,'firebase');assert.notEqual(ia.uid,ib.uid);
   const seen=[];let initial=null;b.onPlanes(({added,initial:i})=>{if(initial===null)initial=i;else seen.push(...added.map(p=>({...p,live:!i})));});
-  let board={};b.onPilots(({pilots})=>{board=pilots;});
   await waitFor(()=>initial!==null);
 
   const id='t-'+Date.now().toString(36);const R=throwPlane(structuredClone(spec),id);
@@ -36,8 +35,13 @@ test('two players: a throw by one appears live for the other, and the rules acce
   assert.deepEqual(got.throws,doc.throws,'throws survive the round trip');
   assert.deepEqual(got.tr,doc.tr);
   assert.ok(Math.abs(got.at-Date.now())<60e3,'server timestamp comes back as millis');
-  await waitFor(()=>board[ia.uid]&&board[ia.uid].score===150);
-  await waitFor(()=>a.me()&&a.me().lastPlane===id);
+  await waitFor(()=>a.me()&&a.me().lastPlane===id&&a.me().score===150);
+  // Only your own pilot doc is read; another pilot's isn't.
+  let pilotsB=null;b.onPilots(({pilots})=>{pilotsB=pilots;});await waitFor(()=>pilotsB);assert.equal(pilotsB[ia.uid],undefined);
+  // Subscribing again starts from the cache: the plane is there at once, and only newer planes come from the server.
+  const again=[];const un2=b.onPlanes(({added,initial})=>again.push(...added.map(p=>({id:p.id,initial}))));
+  await waitFor(()=>again.find(p=>p.id===id));assert.equal(again.find(p=>p.id===id).initial,true);
+  await new Promise(r=>setTimeout(r,500));assert.equal(again.filter(p=>p.id===id).length,1,'not fetched twice');un2();
   assert.equal(b.nameOf(ia.uid),a.nameOf(ia.uid),'same generated name everywhere');
   // Shared links look a plane up by id.
   const one=await b.getPlane(id);assert.equal(one.id,id);assert.equal(one.pid,ia.uid);assert.ok(Array.isArray(one.tr)&&Array.isArray(one.throws[0]));

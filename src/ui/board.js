@@ -11,7 +11,10 @@ export function shown(id,p){let score=p.score||0,planes=p.planes||0;
 export function renderBoard(){const R=records(null);const cats=[['dist','Farthest',' m'],['time','Longest aloft',' s'],['maxZ','Highest climb',' m'],['loops','Most loops','']];
   $('recs').innerHTML=cats.map(c=>{const p=R[c[0]];return p&&(c[0]!=='loops'||p.loops>0)?`<button class="rec" type="button" data-pl="${esc(p.id)}"><small>${c[1]}</small><div class="v num">${p[c[0]]}${c[2]}</div><small>${esc(planeLabel(p))} by ${esc(nm(p.pid))}</small></button>`:`<div class="rec"><small>${c[1]}</small><div class="v">–</div><small>Not set yet</small></div>`;}).join('');
   $('recs').querySelectorAll('[data-pl]').forEach(b=>b.onclick=()=>{if(app.ui)app.ui.closeSheets();app.world.focus(b.dataset.pl);});
-  const ps=Object.entries(net.pilots).map(([id,p])=>[id,shown(id,p)]).filter(([,s])=>s.planes>0).sort((a,b)=>b[1].score-a[1].score).slice(0,25);
+  // Pilots on the field: points and planes counted from the planes loaded (no extra database reads).
+  // Binned planes aren't in net.planes, so they never count here.
+  const tally=new Map();for(const p of net.planes.values()){if(p.unsaved)continue;const t=tally.get(p.pid)||{score:0,planes:0};t.score+=p.points||0;t.planes++;tally.set(p.pid,t);}
+  const ps=[...tally].sort((a,b)=>b[1].score-a[1].score).slice(0,25);
   $('pilots').innerHTML=ps.length?ps.map(([id,s])=>`<tr><td>${esc(nm(id))}</td><td class="num">${s.planes}</td><td class="r">${s.score}</td></tr>`).join(''):'<tr><td colspan="3" class="sub">Nobody has thrown yet.</td></tr>';
   const recent=[...net.planes.values()].sort((a,b)=>b.at-a.at).slice(0,3);
   $('ticker').innerHTML=recent.length?recent.map(p=>`<div><b>${esc(nm(p.pid))}</b>: ${esc(planeLabel(p))}, <b class="num">${p.dist} m · ${p.time} s</b> <span class="sub">${ago(p.at)}</span></div>`).join(''):(net.ready?'The field is empty.':'Loading the field…');

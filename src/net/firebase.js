@@ -8,7 +8,7 @@ import {pilotName} from './pilots.js';
 
 export const SDK_VERSION='12.19.0';
 const CDN=`https://www.gstatic.com/firebasejs/${SDK_VERSION}/`;
-const PLANES_LIMIT=500,PILOTS_LIMIT=50,CONNECT_TIMEOUT=12e3,SAVE_TIMEOUT=12e3;
+const PLANES_LIMIT=500,CONNECT_TIMEOUT=12e3,SAVE_TIMEOUT=12e3;
 
 const withTimeout=(p,ms,what)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error(what+' timed out'),{code:'timeout'})),ms))]);
 const millis=v=>v&&typeof v.toMillis==='function'?v.toMillis():(typeof v==='number'?v:Date.now());
@@ -20,8 +20,8 @@ export function fromFirestore(id,data){const p=Object.assign({},data,{id,pid:dat
 async function loadSdk(){const [app,auth,fs]=await Promise.all(['firebase-app.js','firebase-auth.js','firebase-firestore.js'].map(f=>import(CDN+f)));return{app,auth,fs};}
 
 export function createFirebaseStore(config,opts){opts=opts||{};
-  let F,db,uid=null,mine=null;const pilots={};const planeSubs=new Set(),pilotSubs=new Set();
-  const emitPilots=()=>{const all=Object.assign({},pilots);if(mine)all[uid]=mine;for(const cb of pilotSubs)cb({pilots:all});};
+  let F,db,uid=null,mine=null;const planeSubs=new Set(),pilotSubs=new Set();
+  const emitPilots=()=>{const all={};if(mine)all[uid]=mine;for(const cb of pilotSubs)cb({pilots:all});};
   const err=(e)=>{const c=e&&e.code||'';const out=new Error(e&&e.message||String(e));
     out.code=c==='permission-denied'?'permission_denied':c==='resource-exhausted'?'quota_exceeded':c||'error';return out;};
 
@@ -47,20 +47,26 @@ export function createFirebaseStore(config,opts){opts=opts||{};
       F.fs.onSnapshot(F.fs.doc(db,'pilots',uid),s=>{mine=s.exists()?Object.assign({},s.data({serverTimestamps:'estimate'}),{last:millis(s.data({serverTimestamps:'estimate'}).last)}):null;emitPilots();},()=>{});
       return{uid,mode:'firebase',canWrite:true,limit:true};},
     me(){return mine;},
-    onPilots(cb){pilotSubs.add(cb);
-      const q=F.fs.query(F.fs.collection(db,'pilots'),F.fs.orderBy('score','desc'),F.fs.limit(PILOTS_LIMIT));
-      const un=F.fs.onSnapshot(q,snap=>{for(const ch of snap.docChanges()){if(ch.type==='removed')delete pilots[ch.doc.id];else{const d=ch.doc.data({serverTimestamps:'estimate'});pilots[ch.doc.id]=Object.assign({},d,{last:millis(d.last)});}}emitPilots();},
-        e=>console.warn('Pilots feed stopped:',e.code||e.message));
-      return()=>{pilotSubs.delete(cb);un();};},
-    // Newest 500 planes, oldest first within each delivery.
-    // Everything counts as `initial` until the first snapshot from the server (not the local cache).
-    onPlanes(cb){planeSubs.add(cb);let synced=false;
-      const q=F.fs.query(F.fs.collection(db,'planes'),F.fs.orderBy('at','desc'),F.fs.limit(PLANES_LIMIT));
-      const un=F.fs.onSnapshot(q,snap=>{const added=[];
-          for(const ch of snap.docChanges())if(ch.type==='added')added.push(fromFirestore(ch.doc.id,ch.doc.data({serverTimestamps:'estimate'})));
-          added.reverse();cb({added,initial:!synced});if(!snap.metadata.fromCache)synced=true;},
-        e=>console.warn('Planes feed stopped:',e.code||e.message));
-      return()=>{planeSubs.delete(cb);un();};},
+    // Reads are what the free tier runs out of, so only your own pilot doc is read. The leaderboard is
+    // worked out from the planes already loaded (ui/board.js), not from a pilots query.
+    onPilots(cb){pilotSubs.add(cb);emitPilots();return()=>pilotSubs.delete(cb);},
+    // The field: first whatever this browser already has (Firestore's cache, no reads), then from the server
+    // only planes newer than the newest cached one, live from then on. A first visit reads the newest 500;
+    // a return visit reads just what was thrown since. (A plain listener re-reads all 500 after 30 minutes away.)
+    // Everything counts as `initial` until the first snapshot from the server.
+    onPlanes(cb){planeSubs.add(cb);let un=()=>{},stopped=false;const col=F.fs.collection(db,'planes');
+      const toPlane=d=>fromFirestore(d.id,d.data({serverTimestamps:'estimate'}));
+      (async()=>{let newest=null;
+        try{const s=await F.fs.getDocsFromCache(F.fs.query(col,F.fs.orderBy('at','desc'),F.fs.limit(PLANES_LIMIT)));
+          if(!s.empty){newest=s.docs[0].data({serverTimestamps:'estimate'}).at;cb({added:s.docs.map(toPlane).reverse(),initial:true});}}catch(e){}
+        if(stopped)return;
+        const q=newest?F.fs.query(col,F.fs.where('at','>',newest),F.fs.orderBy('at','desc'),F.fs.limit(PLANES_LIMIT)):F.fs.query(col,F.fs.orderBy('at','desc'),F.fs.limit(PLANES_LIMIT));
+        let synced=false;
+        un=F.fs.onSnapshot(q,snap=>{const added=[];
+            for(const ch of snap.docChanges())if(ch.type==='added')added.push(toPlane(ch.doc));
+            added.reverse();cb({added,initial:!synced});if(!snap.metadata.fromCache)synced=true;},
+          e=>console.warn('Planes feed stopped:',e.code||e.message));})();
+      return()=>{stopped=true;planeSubs.delete(cb);un();};},
     // Plane and pilot doc in one batch, so the rules can check them against each other.
     async savePlane(id,doc,pilot){const b=F.fs.writeBatch(db);const now=F.fs.serverTimestamp();
       b.set(F.fs.doc(db,'planes',id),Object.assign(toFirestore(doc),{uid,at:now}));
