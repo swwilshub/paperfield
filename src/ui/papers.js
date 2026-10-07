@@ -47,6 +47,32 @@ export const PAPERS=[
   {id:'stars',name:'Starry night',base:'#1D2A4D',pattern:'stars',dark:true},
   {id:'terrazzo',name:'Terrazzo',base:'#F3EEE7',pattern:'terrazzo'},
   {id:'sakura',name:'Sakura',base:'#FFF6EE',pattern:'sakura'},
+  // and more colours
+  {id:'mint',name:'Mint',base:'#BDEBD6'},
+  {id:'lime',name:'Lime',base:'#C8E06A'},
+  {id:'tangerine',name:'Tangerine',base:'#F28C38'},
+  {id:'rose',name:'Rose',base:'#E8899A'},
+  {id:'sky',name:'Sky',base:'#9BD3F2'},
+  {id:'aqua',name:'Aqua',base:'#7FDCD3'},
+  {id:'sand',name:'Sand',base:'#E4D3B0'},
+  {id:'olive',name:'Olive',base:'#6E7438',dark:true},
+  {id:'slate',name:'Slate',base:'#5D6B7A',dark:true},
+  {id:'navy',name:'Navy',base:'#1F3A68',dark:true},
+  {id:'burgundy',name:'Burgundy',base:'#7B2D3A',dark:true},
+  {id:'ink',name:'Ink black',base:'#1B1C20',dark:true},
+  // and more patterns
+  {id:'honeycomb',name:'Honeycomb',base:'#FFE08A',pattern:'honeycomb'},
+  {id:'harlequin',name:'Harlequin',base:'#F4E6F0',pattern:'harlequin'},
+  {id:'confetti',name:'Confetti',base:'#FFFFFF',pattern:'confetti'},
+  {id:'triangles',name:'Triangles',base:'#F6F1E7',pattern:'triangles'},
+  {id:'leaves',name:'Leaves',base:'#F1F5E9',pattern:'leaves'},
+  {id:'hearts',name:'Hearts',base:'#FFE3EA',pattern:'hearts'},
+  {id:'clouds',name:'Clouds',base:'#9FCDF0',pattern:'clouds'},
+  {id:'pinstripe',name:'Pinstripe',base:'#22304A',pattern:'pinstripe',dark:true},
+  {id:'crosshatch',name:'Crosshatch',base:'#FBF7EE',pattern:'crosshatch'},
+  {id:'marble',name:'Marble',base:'#F2F1EE',pattern:'marble'},
+  {id:'camo',name:'Camo',base:'#6B7A45',pattern:'camo',dark:true},
+  {id:'rainbow',name:'Rainbow',base:'#FFFFFF',pattern:'rainbow'},
 ];
 export const PAPER_IDS=PAPERS.map(p=>p.id);
 const BY_ID=new Map(PAPERS.map(p=>[p.id,p]));
@@ -54,7 +80,11 @@ const BY_ID=new Map(PAPERS.map(p=>[p.id,p]));
 export const paperDef=id=>BY_ID.get(id)||PAPERS[0];
 
 // Paint one seamless tile of `paper` into a size×size 2D context.
+// Scattered shapes are drawn at each of `WRAP`'s offsets so anything crossing an edge comes back on the other side.
+const WRAP=[[0,0],[40,0],[-40,0],[0,40],[0,-40],[40,40],[-40,-40],[40,-40],[-40,40]];
+const seeded=s=>()=>(s=(s*16807)%2147483647)/2147483647;
 export function paintTile(x,size,paper){const k=size/TILE_MM,mm=v=>v*k;
+  const poly=(pts,fill)=>{x.fillStyle=fill;x.beginPath();pts.forEach(([a,b],i)=>i?x.lineTo(mm(a),mm(b)):x.moveTo(mm(a),mm(b)));x.closePath();x.fill();};
   x.fillStyle=paper.base;x.fillRect(0,0,size,size);
   const line=(c,w)=>{x.strokeStyle=c;x.lineWidth=Math.max(1,mm(w));};
   switch(paper.pattern){
@@ -93,6 +123,41 @@ export function paintTile(x,size,paper){const k=size/TILE_MM,mm=v=>v*k;
         for(const [dx,dy] of [[0,0],[size,0],[-size,0],[0,size],[0,-size]]){x.beginPath();x.ellipse(px+dx,py+dy,rad,rad*0.6,rot,0,7);x.fill();}}break;}
     case 'sakura':{x.fillStyle='rgba(240,140,170,.7)';for(const [cx,cy,a] of [[8,8,0],[28,14,1],[16,30,2],[36,34,0.5],[2,22,1.5]])for(const [dx,dy] of [[0,0],[40,0],[-40,0],[0,40],[0,-40]])
         for(let k=0;k<5;k++){const t=a+k*Math.PI*2/5;x.beginPath();x.ellipse(mm(cx+dx+Math.cos(t)*1.6),mm(cy+dy+Math.sin(t)*1.6),mm(1.5),mm(0.9),t,0,7);x.fill();}break;}
+    // Hexagons 10 mm across, rows 10 mm apart, every other row shifted half a cell.
+    case 'honeycomb':{const R=20/3;line('rgba(190,120,20,.6)',0.35);
+      for(let r=-1;r<=4;r++)for(let c=-1;c<=4;c++){const cx=c*10+(r%2?5:0),cy=r*10;x.beginPath();
+        [[0,-R],[5,-R/2],[5,R/2],[0,R],[-5,R/2],[-5,-R/2]].forEach(([a,b],i)=>i?x.lineTo(mm(cx+a),mm(cy+b)):x.moveTo(mm(cx+a),mm(cy+b)));x.closePath();x.stroke();}break;}
+    case 'harlequin':for(let r=-1;r<=2;r++)for(let c=-1;c<=4;c++){const cx=c*10+5,cy=r*20+10;
+        poly([[cx,cy-10],[cx+5,cy],[cx,cy+10],[cx-5,cy]],'rgba(150,70,130,.55)');}break;   // the gaps between are the paper
+    case 'confetti':{const r=seeded(17),cols=['#F25F5C','#FFE066','#247BA0','#70C1B3','#B388EB','#FF9F1C'];
+      for(let i=0;i<60;i++){const px=r()*40,py=r()*40,w=0.8+r()*1.6,h=0.5+r()*0.6,rot=r()*3.14,c=cols[Math.floor(r()*cols.length)];
+        for(const [dx,dy] of WRAP){x.save();x.translate(mm(px+dx),mm(py+dy));x.rotate(rot);x.fillStyle=c;x.fillRect(-mm(w/2),-mm(h/2),mm(w),mm(h));x.restore();}}break;}
+    // Rows of triangles; the colour follows the triangle's place in the tile, so edges match.
+    case 'triangles':{const cols=['rgba(224,122,95,.75)','rgba(61,90,128,.7)','rgba(242,204,143,.9)','rgba(129,178,154,.8)'];
+      for(let r=0;r<4;r++)for(let c=0;c<8;c++){const y=r*10,xx=c*5;const up=(c+r)%2===0;
+        poly(up?[[xx-5,y+10],[xx,y],[xx+5,y+10]]:[[xx-5,y],[xx+5,y],[xx,y+10]],cols[(r*3+c)%cols.length]);
+        if(c===0)poly(up?[[35,y+10],[40,y],[45,y+10]]:[[35,y],[45,y],[40,y+10]],cols[(r*3+c)%cols.length]);}break;}
+    case 'leaves':{const r=seeded(5);
+      for(let i=0;i<14;i++){const px=r()*40,py=r()*40,a=r()*6.28,l=2.4+r()*1.4,c=r()<0.5?'rgba(80,140,90,.75)':'rgba(140,175,90,.75)';
+        for(const [dx,dy] of WRAP){x.save();x.translate(mm(px+dx),mm(py+dy));x.rotate(a);x.fillStyle=c;x.beginPath();x.ellipse(0,0,mm(l),mm(l*0.42),0,0,7);x.fill();
+          x.strokeStyle='rgba(255,255,255,.55)';x.lineWidth=Math.max(1,mm(0.15));x.beginPath();x.moveTo(-mm(l),0);x.lineTo(mm(l),0);x.stroke();x.restore();}}break;}
+    case 'hearts':{x.fillStyle='rgba(225,70,100,.65)';const heart=(cx,cy,s)=>{x.beginPath();x.moveTo(mm(cx),mm(cy+s*0.9));
+        x.bezierCurveTo(mm(cx-s*1.3),mm(cy),mm(cx-s*0.7),mm(cy-s*1.1),mm(cx),mm(cy-s*0.4));x.bezierCurveTo(mm(cx+s*0.7),mm(cy-s*1.1),mm(cx+s*1.3),mm(cy),mm(cx),mm(cy+s*0.9));x.fill();};
+      for(const [cx,cy] of [[5,5],[25,5],[15,15],[35,15],[5,25],[25,25],[15,35],[35,35]])for(const [dx,dy] of WRAP)heart(cx+dx,cy+dy,2.2);break;}
+    case 'clouds':{x.fillStyle='rgba(255,255,255,.92)';
+      for(const [cx,cy] of [[8,10],[30,24],[16,34]])for(const [dx,dy] of WRAP)for(const [ox,oy,rr] of [[-3,0.6,2.2],[0,-0.8,3],[3.2,0.4,2.4],[0,1.2,2.4]]){x.beginPath();x.arc(mm(cx+dx+ox),mm(cy+dy+oy),mm(rr),0,7);x.fill();}break;}
+    case 'pinstripe':line('rgba(220,230,245,.45)',0.2);for(let i=0;i<8;i++){const p=mm(i*5+2.5);x.beginPath();x.moveTo(p,0);x.lineTo(p,size);x.stroke();}break;
+    case 'crosshatch':line('rgba(60,80,120,.35)',0.2);x.beginPath();
+      for(let i=-8;i<=16;i++){x.moveTo(mm(i*5),0);x.lineTo(mm(i*5+40),size);x.moveTo(mm(i*5),0);x.lineTo(mm(i*5-40),size);}x.stroke();break;
+    // Veins as waves whose period divides the tile, so they run on across both edges.
+    case 'marble':for(const [y0,amp,per,ph,c,w] of [[8,3,1,0.4,'rgba(120,120,130,.45)',0.35],[22,4,2,1.7,'rgba(150,140,120,.4)',0.25],[33,2.5,1,3.1,'rgba(110,115,125,.35)',0.2]]){
+        line(c,w);for(const dy of [-40,0,40]){x.beginPath();for(let t=0;t<=80;t++){const xx=t/2,yy=y0+dy+amp*Math.sin(xx/40*2*Math.PI*per+ph)+0.8*Math.sin(xx/40*2*Math.PI*3*per+ph*2);t?x.lineTo(mm(xx),mm(yy)):x.moveTo(mm(xx),mm(yy));}x.stroke();}}break;
+    case 'camo':{const r=seeded(23),cols=['rgba(45,55,30,.8)','rgba(140,130,80,.75)','rgba(85,100,55,.85)'];
+      for(let i=0;i<22;i++){const px=r()*40,py=r()*40,rx=2+r()*4,ry=1.5+r()*2.5,rot=r()*3.14,c=cols[i%3];
+        for(const [dx,dy] of WRAP){x.fillStyle=c;x.beginPath();x.ellipse(mm(px+dx),mm(py+dy),mm(rx),mm(ry),rot,0,7);x.fill();}}break;}
+    // Diagonal bands: x + y repeats every 40 mm, so the bands meet across the edges.
+    case 'rainbow':{const cols=['#F25F5C','#FF9F1C','#FFE066','#70C1B3','#247BA0','#8E6CCF'];const d=40/6;
+      for(let i=-6;i<12;i++){const a=i*d,b=a+d;poly([[a,0],[b,0],[b-40,40],[a-40,40]],cols[((i%6)+6)%6]);}break;}
   }}
 
 // Cached tile canvases (browser only).

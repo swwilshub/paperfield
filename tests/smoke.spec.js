@@ -31,7 +31,7 @@ test('full-screen field, every action in the bottom dock; designer is fold, wing
   // No drawing, text or trim controls anywhere.
   await expect(page.locator('#elev, #dih, [data-style], [data-gsm], #inkC, #pname, input[type=text]')).toHaveCount(0);
   await expect(page.locator('[data-stepdot]')).toHaveText(['Paper','Fold','Wings','Release']);
-  await expect(page.locator('#papers .swatch')).toHaveCount(38);
+  await expect(page.locator('#papers .swatch')).toHaveCount(62);
   // The field fills the screen and nothing scrolls.
   const vp=page.viewportSize();const wb=await page.locator('#worldWrap').boundingBox();
   expect(wb.width).toBe(vp.width);expect(wb.height).toBe(vp.height);

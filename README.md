@@ -14,7 +14,7 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   and watch its throw again.
 - **Every action is in the dock** at the bottom. *Fold a plane* opens the designer, one step at a time
   (tap a step's name to jump back):
-  1. **Paper**: 38 colours and printed patterns (graph, blueprint, tartan, sakura…), or *Random*.
+  1. **Paper**: 62 colours and printed patterns (graph, blueprint, tartan, sakura, honeycomb, rainbow…), or *Random*.
   2. **Fold**: drag across the sheet to crease it. Folds are mirrored, like a real plane.
   3. **Wings**: set the keel line, which decides what hangs down and what becomes wing.
   4. **Release**: your plane turns slowly above the sheet. Release it and the sheet folds up in front of you, then the countdown starts.
