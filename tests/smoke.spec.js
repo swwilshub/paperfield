@@ -163,11 +163,16 @@ test('a plane whose saved flight is impossible stays out of the field and the re
   await expect(page.locator('#reveal')).toBeVisible({timeout:60e3});await page.locator('#rvClose').click();
   const real=await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('onesheet-local-v1'));const p=d.planes[0];
     const fake=Object.assign({},p,{id:'fake-plane',pid:'cheater',uid:'cheater',dist:500,time:24,maxZ:200,loops:12,points:1300,at:Date.now()});
-    d.planes.push(fake);localStorage.setItem('onesheet-local-v1',JSON.stringify(d));return p.dist;});
+    d.planes.push(fake);d.pilots.cheater={score:1300+40,planes:2,last:Date.now(),lastPlane:'fake-plane',pbDist:500,pbTime:24};
+    // ...and one real plane by the same pilot, worth 40 points.
+    d.planes.push(Object.assign({},p,{id:'cheater-real',pid:'cheater',uid:'cheater',points:40,at:Date.now()-1000}));localStorage.setItem('onesheet-local-v1',JSON.stringify(d));return p.dist;});
   await page.reload();await expect(page.locator('#me')).toContainText('pts');
   await page.locator('#openBoard').click();
   await expect(page.locator('#recs')).toContainText(real.toFixed(1).replace(/\.0$/,'')+' m');await expect(page.locator('#recs')).not.toContainText('500 m');
   await expect(page.locator('#ticker')).not.toContainText('500 m');
+  // The leaderboard takes the binned plane off its pilot: 1 plane, 40 points.
+  const row=page.locator('#pilots tr').filter({hasNotText:'You'});
+  await expect(row.locator('td').nth(1)).toHaveText('1');await expect(row.locator('td').nth(2)).toHaveText('40');
   // Its share link still shows the flight, then the plane is crumpled and the field comes back.
   await page.goto(LOCAL+'&plane=fake-plane');
   await expect(page.locator('#worldWrap')).toHaveClass(/event/,{timeout:20e3});

@@ -25,7 +25,8 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   one an hour when it's packed (`src/net/cooldown.js`).
 - **Too good to be true**: a plane with an implausible result (over 100 m, 15 s, 25 m up or 5 loops) is re-flown
   with the real physics before it's shown. If its saved flight doesn't match, it stays in the database but out of the
-  field and the records; its share link plays the flight, then crumples it into a paper ball (`src/net/verify.js`).
+  field, the records and its pilot's shown points; its share link plays the flight, then crumples it into a paper ball
+  (`src/net/verify.js`).
 - **Pilots** get a generated name such as "Amber Heron"; planes are named by paper, e.g. "Graph paper plane".
 
 ## Run locally

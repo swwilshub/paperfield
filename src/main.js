@@ -43,6 +43,7 @@ async function connect(){
 const queue=[];
 function check(p,mode){queue.push([p,mode]);if(queue.length===1)setTimeout(drain,50);}
 function drain(){const [p,mode]=queue.shift();if(genuine(p)&&net.hidden.delete(p.id)){net.planes.set(p.id,p);app.world.add(p,mode);renderBoard();}
+  else if(!genuine(p)){net.binned.set(p.id,p);renderBoard();updateMe();}
   if(queue.length)setTimeout(drain,20);}
 
 // ===== shared links =====
@@ -52,7 +53,7 @@ async function openLinked(store){const id=linkedPlane();if(!id)return;
   let p=net.planes.get(id)||net.hidden.get(id);
   if(!p){try{p=await store.getPlane(id);}catch(e){}
     if(!p||!Array.isArray(p.tr)||!Array.isArray(p.folds)){$('ticker').textContent='That shared plane isn\'t in the field any more.';return;}}
-  if(suspicious(p)&&!genuine(p)){net.hidden.set(id,p);app.world.event(p,{countdown:false,extreme:true});return;}
+  if(suspicious(p)&&!genuine(p)){net.hidden.set(id,p);net.binned.set(id,p);renderBoard();updateMe();app.world.event(p,{countdown:false,extreme:true});return;}
   if(!net.planes.has(id)){net.hidden.delete(id);net.planes.set(id,p);app.world.add(p);renderBoard();}
   app.world.focus(id);}
 
