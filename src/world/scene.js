@@ -10,12 +10,15 @@ function stubWorld(){$('ticker').textContent='3D view unavailable on this device
   return{add(){},focus(){},event(p,o){if(o&&o.onLand)o.onLand();},busy:()=>false,end(){}};}
 
 export async function createWorld(){let THREE,R;const canvas=$('world');
-  try{THREE=await import('three');R=new THREE.WebGLRenderer({canvas,antialias:true});}catch(e){return stubWorld();}
+  try{THREE=await import('three');
+    // Keep r128's look: no colour management (colours and textures are used as given, output isn't
+    // converted). Lights are physically based since r155, so their intensities are scaled by π (LIGHT) below.
+    THREE.ColorManagement.enabled=false;R=new THREE.WebGLRenderer({canvas,antialias:true});R.outputColorSpace=THREE.LinearSRGBColorSpace;}catch(e){return stubWorld();}
   R.setPixelRatio(Math.min(2,devicePixelRatio||1));const scene=new THREE.Scene();const cam=new THREE.PerspectiveCamera(50,1,0.1,1500);
   const dark=matchMedia('(prefers-color-scheme: dark)').matches;const skyTop=dark?'#0B1220':'#CFE0F2',skyLow=dark?'#1A2533':'#F4F7FA',gBase=dark?'#141C27':'#E9EEF3',gMinor=dark?'#1E2A38':'#D3DDE8',gMajor=dark?'#33445A':'#A9BCD0';
   const sk=document.createElement('canvas');sk.width=4;sk.height=256;const skx=sk.getContext('2d');const grd=skx.createLinearGradient(0,0,0,256);grd.addColorStop(0,skyTop);grd.addColorStop(1,skyLow);skx.fillStyle=grd;skx.fillRect(0,0,4,256);
   scene.background=new THREE.CanvasTexture(sk);scene.fog=new THREE.Fog(new THREE.Color(skyLow),140,420);
-  scene.add(new THREE.HemisphereLight(0xffffff,0x8899aa,0.95));const sun=new THREE.DirectionalLight(0xffffff,0.55);sun.position.set(30,80,-40);scene.add(sun);
+  const LIGHT=Math.PI;scene.add(new THREE.HemisphereLight(0xffffff,0x8899aa,0.95*LIGHT));const sun=new THREE.DirectionalLight(0xffffff,0.55*LIGHT);sun.position.set(30,80,-40);scene.add(sun);
   const gc=document.createElement('canvas');gc.width=gc.height=512;const gx=gc.getContext('2d');gx.fillStyle=gBase;gx.fillRect(0,0,512,512);
   gx.strokeStyle=gMinor;gx.lineWidth=2;for(let i=0;i<10;i++){gx.beginPath();gx.moveTo(i*51.2,0);gx.lineTo(i*51.2,512);gx.moveTo(0,i*51.2);gx.lineTo(512,i*51.2);gx.stroke();}
   gx.strokeStyle=gMajor;gx.lineWidth=5;gx.strokeRect(0,0,512,512);
