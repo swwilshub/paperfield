@@ -10,14 +10,14 @@ import {audio} from './audio/music.js';
 import {createWorld} from './world/scene.js';
 import {openStore} from './net/store.js';
 import {linkedPlane} from './ui/share.js';
-import {suspicious,genuine} from './net/verify.js';
+import {suspicious,genuine,verdict,check} from './net/verify.js';
 import {benchCount,benchPlanes} from './net/bench.js';
 
 app.audio=audio;
 // For tests and the console: window.paperfield.audio.debug() shows the music stage and song.
 window.paperfield={audio};
 // Until three.js has loaded, releases still score and reveal; the plane just isn't shown flying.
-app.world={add(){},focus(){},event(p,o){if(o&&o.onLand)o.onLand();},busy:()=>false,end(){}};
+app.world={add(){},remove(){},focus(){},event(p,o){if(o&&o.onLand)o.onLand();},busy:()=>false,end(){}};
 
 // ===== music =====
 // Always on. Browsers only allow sound after a user gesture, so it starts on the first one.
@@ -32,20 +32,22 @@ async function connect(){
   store.onPlanes(({added,initial})=>{
     for(const p of added){if(net.planes.has(p.id)||net.hidden.has(p.id))continue;if(!Array.isArray(p.tr)||!Array.isArray(p.folds))continue;
       const mode=!initial&&p.pid!==net.uid&&Date.now()-p.at<10*60e3?'live':null;
-      if(suspicious(p)){net.hidden.set(p.id,p);check(p,mode);continue;}
-      net.planes.set(p.id,p);app.world.add(p,mode);}
+      incoming(p,mode);}
     net.ready=true;renderBoard();if(first){first=false;setInterval(renderBoard,60000);}});
   await openLinked(store);
 }
 
 // ===== too-good-to-be-true planes =====
-// Implausible flights stay hidden until re-flown (net/verify.js), one per tick so loading stays smooth.
-// Real ones join the field; the rest stay in the database but out of the field and the records.
-const queue=[];
-function check(p,mode){queue.push([p,mode]);if(queue.length===1)setTimeout(drain,50);}
-function drain(){const [p,mode]=queue.shift();if(genuine(p)&&net.hidden.delete(p.id)){net.planes.set(p.id,p);app.world.add(p,mode);renderBoard();}
-  else if(!genuine(p)){net.binned.set(p.id,p);renderBoard();updateMe();}
-  if(queue.length)setTimeout(drain,20);}
+// Every plane is re-flown in the background (net/verify.js). Implausible ones stay hidden until they
+// pass; the rest join the field at once and leave it if they fail. Failed planes stay in the database,
+// out of the field, the records and the leaderboard; only their share link shows them.
+function incoming(p,mode){const v=verdict(p.id);
+  if(v===false){bin(p);return;}
+  if(v===undefined&&suspicious(p)){net.hidden.set(p.id,p);check(p,{hidden:true}).then(ok=>{if(ok&&net.hidden.delete(p.id))show(p,mode);else if(!ok)bin(p);});return;}
+  show(p,mode);if(v===undefined)check(p).then(ok=>{if(!ok)bin(p);});}
+function show(p,mode){net.planes.set(p.id,p);app.world.add(p,mode);boardSoon();}
+function bin(p){net.hidden.set(p.id,p);net.binned.set(p.id,p);if(net.planes.delete(p.id))app.world.remove&&app.world.remove(p.id);boardSoon();updateMe();}
+let boardT=null;function boardSoon(){if(!boardT)boardT=setTimeout(()=>{boardT=null;renderBoard();},300);}
 
 // ===== shared links =====
 // ?plane=<id> flies the camera to that plane on the ground and opens its card. A plane whose flight
@@ -54,7 +56,7 @@ async function openLinked(store){const id=linkedPlane();if(!id)return;
   let p=net.planes.get(id)||net.hidden.get(id);
   if(!p){try{p=await store.getPlane(id);}catch(e){}
     if(!p||!Array.isArray(p.tr)||!Array.isArray(p.folds)){$('ticker').textContent='That shared plane isn\'t in the field any more.';return;}}
-  if(suspicious(p)&&!genuine(p)){net.hidden.set(id,p);net.binned.set(id,p);renderBoard();updateMe();app.world.event(p,{countdown:false,extreme:true});return;}
+  if(!genuine(p)){net.hidden.set(id,p);net.binned.set(id,p);renderBoard();updateMe();app.world.event(p,{countdown:false,extreme:true});return;}
   if(!net.planes.has(id)){net.hidden.delete(id);net.planes.set(id,p);app.world.add(p);renderBoard();}
   app.world.focus(id);}
 

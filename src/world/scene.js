@@ -69,4 +69,4 @@ export async function createWorld(){let THREE,R;const canvas=$('world');
     cam.position.set(P.x+d.x*6.5,2.8,P.z+d.z*6.5);cam.lookAt(P.x,0.2,P.z);cam.fov=50;cam.updateProjectionMatrix();
     R.render(scene,cam);const c=document.createElement('canvas');c.width=canvas.width;c.height=canvas.height;c.getContext('2d').drawImage(canvas,0,0);
     cam.position.copy(pos);cam.quaternion.copy(q);cam.fov=fov;cam.updateProjectionMatrix();return c;};
-  return{info:()=>({calls:R.info.render.calls,triangles:R.info.render.triangles,planes:W.items.size,pixelRatio:R.getPixelRatio(),lowFx:W.lowFx}),add:W.add,focus:W.focus,event:W.event,preview:W.preview,foldUp:W.foldUp,snapshot:W.snapshot,busy:()=>!!W.ev,end:()=>W.endEvent()};}
+  return{info:()=>({calls:R.info.render.calls,triangles:R.info.render.triangles,planes:W.items.size,pixelRatio:R.getPixelRatio(),lowFx:W.lowFx}),add:W.add,remove:W.remove,focus:W.focus,event:W.event,preview:W.preview,foldUp:W.foldUp,snapshot:W.snapshot,busy:()=>!!W.ev,end:()=>W.endEvent()};}

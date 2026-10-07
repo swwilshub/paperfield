@@ -6,6 +6,7 @@ import {planeDoc,results,scorePoints} from '../net/planedoc.js';
 import {geometry} from '../core/geometry.js';
 import {renderBoard,updateMe} from './board.js';
 import {sharePlane,sharePhoto,shareButton} from './share.js';
+import {trust} from '../net/verify.js';
 
 export function myPilot(){return net.uid?net.pilots[net.uid]:null;}
 export function cooldown(){const p=myPilot();return cooldownLeft(p&&p.last,net.planes.values(),Date.now(),p?p.planes:0);}
@@ -51,7 +52,7 @@ async function doRelease(){$('busy').style.display='grid';await new Promise(r=>s
   $('result').innerHTML='<p class="sub">Watch the field.</p>';
   // The sheet goes, and your plane folds up in front of you before the countdown.
   if(app.ui)app.ui.eventMode(true);if(app.world.foldUp)await app.world.foldUp(previewSpec());else await new Promise(r=>setTimeout(r,300));
-  const recordDist=rec.dist?rec.dist.dist:0;net.planes.set(id,p);
+  const recordDist=rec.dist?rec.dist.dist:0;trust(id);net.planes.set(id,p);
   app.world.event(p,{countdown:true,recordDist,onLand:()=>{renderResult(p,pts,total,saved,saveErr,R);renderBoard();updateMe();renderGo();reveal(p,pts,total,saved);}});}
 export function reveal(p,pts,total,saved){const el=$('reveal');const far=p.style!=='float';el.hidden=false;
   announce(`${planeLabel(p)} landed: ${p.dist.toFixed(1)} metres, ${p.time.toFixed(1)} seconds in the air, ${total} points.${pts.some(q=>/^Field record/.test(q[0]))?' New field record!':''}`);
