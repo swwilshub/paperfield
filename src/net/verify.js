@@ -35,7 +35,7 @@ export function extreme(p){return suspicious(p)&&!genuine(p);}
 // A priority queue fed to one worker: hidden (suspicious) planes first, then the most points first.
 let worker=null,busy=null;const queue=[];
 function startWorker(){if(worker!==null)return worker;try{worker=new Worker(new URL('./verify-worker.js',import.meta.url),{type:'module'});
-    worker.onmessage=e=>{const [p,done]=busy;busy=null;remember(p.id,e.data.ok);done(e.data.ok);setTimeout(pump,30);};   // a breath between planes, for slow phonesworker.onerror=()=>{worker=false;};}catch(e){worker=false;}return worker;}
+    worker.onmessage=e=>{const [p,done]=busy;busy=null;remember(p.id,e.data.ok);done(e.data.ok);setTimeout(pump,30);};   /* a breath between planes, for slow phones */worker.onerror=()=>{worker=false;};}catch(e){worker=false;}return worker;}
 function pump(){if(busy||!queue.length)return;queue.sort((a,b)=>b[2]-a[2]);busy=queue.shift();
   if(startWorker())worker.postMessage(busy[0]);else setTimeout(()=>{const [p,done]=busy;busy=null;done(genuine(p));pump();},30);}   // no workers: on the main thread, one at a time
 // Resolves true or false once the plane has been re-flown (at once if it already has).

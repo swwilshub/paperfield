@@ -32,7 +32,7 @@ src/core/      folds.js geometry.js aero.js sim.js thrower.js
 src/ui/        state.js tabs.js (app shell: modes, sheets, dock) fold.js folddemo.js (first-fold demo) wings.js papers.js (the paper set + pattern tiles) paper.js (swatch picker) shapes.js release.js board.js share.js (plane links + photos)
 src/world/     scene.js planes.js event.js preview.js (release preview + fold-up) foldanim.js (pure fold-up geometry)
 src/audio/     music.js (game-facing API) engine.js (procedural chill band + event cues) theory.js (pure, seeded keys/chords/scales)
-src/net/       store.js (adapter interface) local.js firebase.js firebase-config.js cooldown.js (throw limit) pilots.js (generated pilot names) planedoc.js (the saved plane doc) verify.js (re-fly implausible planes) bench.js (?local&bench=N test field)
+src/net/       store.js (adapter interface) local.js firebase.js firebase-config.js cooldown.js (throw limit) pilots.js (generated pilot names) planedoc.js (the saved plane doc) verify.js + verify-worker.js (re-fly every plane) bench.js (?local&bench=N test field)
 styles/        main.css
 tests/         physics/theory/cooldown/papers/foldanim/verify.test.js (node --test) rules.test.js firebase.test.js multiplayer.spec.js (emulators) smoke.spec.js (Playwright)
 firestore.rules  firebase.json  README.md  PLAN.md

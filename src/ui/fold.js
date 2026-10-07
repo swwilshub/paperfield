@@ -2,7 +2,7 @@
 import {S,$,app,r1,curPolys,paperOf} from './state.js';
 import {svgPaper} from './papers.js';
 import {pip,splitByFold,lineNormal,polyArea,bboxOf,foldPolys} from '../core/folds.js';
-import {playDemo,stopDemo,shouldDemo} from './folddemo.js';
+import {playDemo,stopDemo,shouldDemo,demoSeen} from './folddemo.js';
 
 const fsvg=$('foldSvg');
 function lineSegIn(polys,P,Q){const d=[Q[0]-P[0],Q[1]-P[1]],L=Math.hypot(d[0],d[1])||1;const u=[d[0]/L,d[1]/L];const T=S.W+S.L;let a=null,b=null;
@@ -57,7 +57,7 @@ const HINT='Drag a line across the paper to crease it. Folds are mirrored on the
 function demo(){playDemo(fsvg,finished=>{$('foldHint').textContent=finished?'Your turn: drag a line over a corner, then tap Fold.':HINT;if(finished)renderFold();});}
 export function maybeFoldDemo(){if(shouldDemo())setTimeout(()=>{if(document.body.dataset.mode==='fold'&&!S.drag&&shouldDemo())demo();},450);}
 $('foldDemoBtn').addEventListener('click',()=>{if(S.folds.length)return;S.pending=null;demo();});
-fsvg.addEventListener('pointerdown',e=>{if(app.audio)app.audio.stage('fold');if(S.actions.length>=14){$('foldHint').innerHTML='<span class="err">That\'s 14 creases. The paper won\'t take more.</span>';return;}
+fsvg.addEventListener('pointerdown',e=>{demoSeen();if(app.audio)app.audio.stage('fold');if(S.actions.length>=14){$('foldHint').innerHTML='<span class="err">That\'s 14 creases. The paper won\'t take more.</span>';return;}
   fsvg.setPointerCapture(e.pointerId);const polys=curPolys();S.pending=null;S.drag={a:snap(svgPoint(e),polys),b:null,polys};renderFold();});
 fsvg.addEventListener('pointermove',e=>{if(!S.drag)return;S.drag.b=snap(svgPoint(e),S.drag.polys);renderFold();});
 fsvg.addEventListener('pointerup',()=>{if(!S.drag)return;const d=S.drag;S.drag=null;if(!d.b){renderFold();return;}finishCrease(d);});
@@ -75,7 +75,7 @@ fsvg.addEventListener('keydown',e=>{if(!kb)kb={p:[S.W/2,S.L]};const step=e.shift
   if(mv){e.preventDefault();kb.p=[Math.max(0,Math.min(S.W,kb.p[0]+mv[0])),Math.max(0,Math.min(S.L,kb.p[1]+mv[1]))];if(S.drag&&S.drag.kb)S.drag.b=snap(kb.p,S.drag.polys);renderFold();return;}
   if(e.key==='Escape'){if(S.drag&&S.drag.kb){S.drag=null;$('foldHint').textContent='Cancelled.';renderFold();}return;}
   if(e.key!=='Enter'&&e.key!==' ')return;e.preventDefault();
-  if(!(S.drag&&S.drag.kb)){if(S.actions.length>=14)return;if(app.audio)app.audio.stage('fold');const polys=curPolys();S.pending=null;const a=snap(kb.p,polys);
+  if(!(S.drag&&S.drag.kb)){if(S.actions.length>=14)return;demoSeen();stopDemo();if(app.audio)app.audio.stage('fold');const polys=curPolys();S.pending=null;const a=snap(kb.p,polys);
     S.drag={a,b:a,polys,kb:true};$('foldHint').textContent=`Start set at ${Math.round(a[0])}, ${Math.round(a[1])} mm. Move to the end of the crease and press Enter.`;renderFold();return;}
   const d=S.drag;S.drag=null;d.b=snap(kb.p,d.polys);finishCrease(d);});
 fsvg.addEventListener('pointercancel',()=>{S.drag=null;renderFold();});

@@ -16,7 +16,9 @@ const lerp=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];
 
 let run=null;
 export const demoRunning=()=>!!run;
-export function shouldDemo(){if(reduceMotion||S.folds.length)return false;try{return !localStorage.getItem(SEEN);}catch(e){return false;}}
+// Someone who has already started folding doesn't need showing.
+export function demoSeen(){try{localStorage.setItem(SEEN,'1');}catch(e){}}
+export function shouldDemo(){if(reduceMotion||S.folds.length||S.pending||S.drag)return false;try{return !localStorage.getItem(SEEN);}catch(e){return false;}}
 // Stop without redrawing (the caller redraws the real sheet).
 export function stopDemo(){if(!run)return;cancelAnimationFrame(run.raf);const done=run.done;run=null;done(false);}
 
