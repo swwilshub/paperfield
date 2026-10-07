@@ -7,7 +7,7 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
   const trail=new THREE.Line(trailGeo,new THREE.LineBasicMaterial({color:new THREE.Color(penC),transparent:true,opacity:0.85}));trail.frustumCulled=false;scene.add(trail);let trailN=0;
   function trailPush(v){if(trailN>=trailMax)return;trailGeo.attributes.position.setXYZ(trailN++,v.x,v.y,v.z);trailGeo.attributes.position.needsUpdate=true;trailGeo.setDrawRange(0,trailN);}
   const bits=[];const bitGeo=new THREE.PlaneGeometry(0.35,0.25);
-  function burst(pos,col){const cols=[col,'#FFFFFF','#FFE45C','#D2423A','#2D63C8','#CDE7FF'];for(let i=0;i<46;i++){const m=new THREE.Mesh(bitGeo,new THREE.MeshBasicMaterial({color:new THREE.Color(cols[i%cols.length]),side:THREE.DoubleSide,transparent:true}));
+  function burst(pos,col){const cols=[col,'#FFFFFF','#FFE45C','#D2423A','#2D63C8','#CDE7FF'];for(let i=0,n=W.lowFx?14:46;i<n;i++){const m=new THREE.Mesh(bitGeo,new THREE.MeshBasicMaterial({color:new THREE.Color(cols[i%cols.length]),side:THREE.DoubleSide,transparent:true}));
       m.position.copy(pos);const a=Math.random()*Math.PI*2,sp=2+Math.random()*5;bits.push({m,v:new THREE.Vector3(Math.cos(a)*sp,4+Math.random()*6,Math.sin(a)*sp),w:new THREE.Vector3(Math.random()*9,Math.random()*9,Math.random()*9),life:2.6});scene.add(m);}}
   function callout(text,big){const c=$('callout');c.textContent=text;c.className=big?'show big':'show';void c.offsetWidth;clearTimeout(c._t);c._t=setTimeout(()=>{c.className='';},big?2600:1600);}
   function event(p,opts){opts=opts||{};W.hideCard();$('toast').hidden=true;let it=W.items.get(p.id);if(!it)it=W.add(p,'event');if(!it){if(opts.onLand)opts.onLand();return;}

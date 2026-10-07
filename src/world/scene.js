@@ -49,7 +49,14 @@ export async function createWorld(){let THREE,R;const canvas=$('world');
   $('home').onclick=()=>{if(W.ev)W.endEvent();Object.assign(O,HOME);W.follow=null;W.hideCard();};
   addEventListener('resize',resize);resize();let visible=true;new IntersectionObserver(es=>{visible=es[0].isIntersecting;}).observe(canvas);
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;let lastNow=performance.now();
-  function loop(now){requestAnimationFrame(loop);const dt=Math.min(0.05,(now-lastNow)/1000);lastNow=now;if(!visible&&!W.ev)return;
+  // ---------- frame-time budget ----------
+  // If the frame rate stays under BUDGET_FPS (two 2-second windows in a row), draw fewer pixels: step the
+  // pixel ratio down towards 1, and switch to light effects (less confetti). It only ever steps down.
+  const BUDGET_FPS=45;let fpsN=0,fpsT=0,slow=0;W.lowFx=false;
+  function budget(rawDt){if(document.hidden||rawDt>0.5)return;fpsN++;fpsT+=rawDt;if(fpsT<2)return;const fps=fpsN/fpsT;fpsN=0;fpsT=0;
+    slow=fps<BUDGET_FPS?slow+1:0;if(slow<2)return;slow=0;W.lowFx=true;const pr=R.getPixelRatio();
+    if(pr>1){R.setPixelRatio(Math.max(1,pr-0.5));resize();}}
+  function loop(now){requestAnimationFrame(loop);const raw=(now-lastNow)/1000,dt=Math.min(0.05,raw);lastNow=now;if(!visible&&!W.ev)return;budget(raw);
     const flights=W.flights;for(let i=flights.length-1;i>=0;i--){const it=flights[i];const t=(now-it.t0)/1000;const n=it.p.tr.length/4;const tEnd=it.p.tr[4*(n-1)];if(reduce||t>=tEnd){W.rest(it);flights.splice(i,1);W.unpin(it,'flight');continue;}W.poseAt(it,t);}
     W.updateBits(dt);W.previewTick(dt);
     if(W.ev)W.updateEvent(dt);else placeCam();
@@ -62,4 +69,4 @@ export async function createWorld(){let THREE,R;const canvas=$('world');
     cam.position.set(P.x+d.x*6.5,2.8,P.z+d.z*6.5);cam.lookAt(P.x,0.2,P.z);cam.fov=50;cam.updateProjectionMatrix();
     R.render(scene,cam);const c=document.createElement('canvas');c.width=canvas.width;c.height=canvas.height;c.getContext('2d').drawImage(canvas,0,0);
     cam.position.copy(pos);cam.quaternion.copy(q);cam.fov=fov;cam.updateProjectionMatrix();return c;};
-  return{info:()=>({calls:R.info.render.calls,triangles:R.info.render.triangles,planes:W.items.size,pixelRatio:R.getPixelRatio()}),add:W.add,focus:W.focus,event:W.event,preview:W.preview,foldUp:W.foldUp,snapshot:W.snapshot,busy:()=>!!W.ev,end:()=>W.endEvent()};}
+  return{info:()=>({calls:R.info.render.calls,triangles:R.info.render.triangles,planes:W.items.size,pixelRatio:R.getPixelRatio(),lowFx:W.lowFx}),add:W.add,focus:W.focus,event:W.event,preview:W.preview,foldUp:W.foldUp,snapshot:W.snapshot,busy:()=>!!W.ev,end:()=>W.endEvent()};}
