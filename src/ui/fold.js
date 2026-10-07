@@ -2,6 +2,7 @@
 import {S,$,app,r1,curPolys,paperOf} from './state.js';
 import {svgPaper} from './papers.js';
 import {pip,splitByFold,lineNormal,polyArea,bboxOf,foldPolys} from '../core/folds.js';
+import {playDemo,stopDemo,shouldDemo} from './folddemo.js';
 
 const fsvg=$('foldSvg');
 function lineSegIn(polys,P,Q){const d=[Q[0]-P[0],Q[1]-P[1]],L=Math.hypot(d[0],d[1])||1;const u=[d[0]/L,d[1]/L];const T=S.W+S.L;let a=null,b=null;
@@ -33,7 +34,7 @@ function snap(p,polys){const cx=S.W/2;let best=null,bd=9;
   if(Math.abs(p[0]-cx)<5)return[cx,Math.round(p[1]/5)*5];return[Math.round(p[0]/5)*5,Math.round(p[1]/5)*5];}
 function svgPoint(evt){const g=fsvg.querySelector('#flipG');const pt=fsvg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;const p=pt.matrixTransform(g.getScreenCTM().inverse());return[p.x,p.y];}
 export function polyPts(pl){return pl.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');}
-export function renderFold(){const W=S.W,L=S.L,cx=W/2,pad=12;const polys=curPolys();fsvg.setAttribute('viewBox',`${-pad} ${-pad} ${W+2*pad} ${L+2*pad}`);
+export function renderFold(){stopDemo();const W=S.W,L=S.L,cx=W/2,pad=12;const polys=curPolys();fsvg.setAttribute('viewBox',`${-pad} ${-pad} ${W+2*pad} ${L+2*pad}`);
   let g=`<rect x="${-pad}" y="${-pad}" width="${W+2*pad}" height="${L+2*pad}" fill="transparent"/><g id="flipG" transform="translate(0 ${L}) scale(1 -1)">`;
   g+=`<rect x="0" y="0" width="${W}" height="${L}" fill="none" stroke="var(--faint)" stroke-dasharray="3 4" stroke-width="0.8"/>`;
   // The sheet in the chosen paper, with each layer shaded on top so the stack shows.
@@ -49,7 +50,12 @@ export function renderFold(){const W=S.W,L=S.L,cx=W/2,pad=12;const polys=curPoly
   g+='</g>';fsvg.innerHTML=g;
   $('orientBox').hidden=S.folds.length>0;$('undo').disabled=!S.actions.length;$('restart').disabled=!S.folds.length;
   $('foldCount').textContent=S.actions.length?`${S.actions.length} crease${S.actions.length>1?'s':''} so far.`:'';
-  $('pendingBtns').hidden=!(pd&&pd.res&&pd.res.folds);$('foldMain').hidden=!$('pendingBtns').hidden;}
+  $('pendingBtns').hidden=!(pd&&pd.res&&pd.res.folds);$('foldMain').hidden=!$('pendingBtns').hidden;$('foldDemoBtn').hidden=S.folds.length>0;}
+// The fold demo (folddemo.js): once on a first blank sheet, and again from "Show me".
+const HINT='Drag a line across the paper to crease it. Folds are mirrored on the other side. Try folding the top corners to the centre.';
+function demo(){playDemo(fsvg,finished=>{$('foldHint').textContent=finished?'Your turn: drag a line over a corner, then tap Fold.':HINT;if(finished)renderFold();});}
+export function maybeFoldDemo(){if(shouldDemo())setTimeout(()=>{if(document.body.dataset.mode==='fold'&&!S.drag&&shouldDemo())demo();},450);}
+$('foldDemoBtn').addEventListener('click',()=>{if(S.folds.length)return;S.pending=null;demo();});
 fsvg.addEventListener('pointerdown',e=>{if(app.audio)app.audio.stage('fold');if(S.actions.length>=14){$('foldHint').innerHTML='<span class="err">That\'s 14 creases. The paper won\'t take more.</span>';return;}
   fsvg.setPointerCapture(e.pointerId);const polys=curPolys();S.pending=null;S.drag={a:snap(svgPoint(e),polys),b:null,polys};renderFold();});
 fsvg.addEventListener('pointermove',e=>{if(!S.drag)return;S.drag.b=snap(svgPoint(e),S.drag.polys);renderFold();});
@@ -65,7 +71,8 @@ $('undo').addEventListener('click',()=>{const n=S.actions.pop();if(n)S.folds=S.f
 $('restart').addEventListener('click',()=>{if(!confirm('Unfold everything and start with a fresh sheet?'))return;S.folds=[];S.actions=[];S.pending=null;renderFold();});
 document.querySelectorAll('[data-or]').forEach(b=>b.addEventListener('click',()=>{if(S.folds.length)return;S.orient=b.dataset.or;S.W=S.orient==='portrait'?210:297;S.L=S.orient==='portrait'?297:210;
   document.querySelectorAll('[data-or]').forEach(x=>x.setAttribute('aria-pressed',x===b));clampKeel();renderFold();}));
-export function clampKeel(){const cx=S.W/2;['hN','hT'].forEach(k=>{$(k).max=Math.floor(cx);if(S[k]>cx)S[k]=Math.floor(cx);$(k).value=S[k];});}
+export const KEEL_MIN=3;
+export function clampKeel(){const cx=Math.floor(S.W/2);for(const k of ['hN','hT'])S[k]=Math.max(KEEL_MIN,Math.min(cx,S[k]));}
 
 // Musical cues (no-ops until sound is unlocked). Registered after the handlers above, so they see the result.
 function cue(n,d){if(app.audio)app.audio.cue(n,d);}

@@ -35,13 +35,12 @@
  <div class="step" data-step="fold">
   <svg id="foldSvg" aria-label="Your sheet. Drag across it to draw a crease. The nose is at the top."></svg>
   <div class="hint" id="foldHint">Drag a line across the paper to crease it. Folds are mirrored on the other side. Try folding the top corners to the centre.</div>
-  <div class="steprow"><div id="orientBox" class="seg" role="group" aria-label="Sheet"><button type="button" data-or="portrait" aria-pressed="true">Portrait</button><button type="button" data-or="landscape" aria-pressed="false">Landscape</button></div><span class="sub num" id="foldCount"></span><button class="linkbtn" id="restart" type="button">Start again</button></div>
+  <div class="steprow"><div id="orientBox" class="seg" role="group" aria-label="Sheet"><button type="button" data-or="portrait" aria-pressed="true">Portrait</button><button type="button" data-or="landscape" aria-pressed="false">Landscape</button></div><span class="sub num" id="foldCount"></span><button class="linkbtn" id="foldDemoBtn" type="button">Show me</button><button class="linkbtn" id="restart" type="button">Start again</button></div>
  </div>
  <div class="step" data-step="wings" hidden>
   <svg id="wingSvg" aria-label="Half of your folded plane with the wing fold line"></svg>
-  <p class="hint">Right of the dashed line hangs down as the keel; left of it is wing.</p>
-  <label for="hN">Keel depth at the nose <output id="hNo" class="num"></output></label><input id="hN" type="range" min="3" max="105" step="1" value="15">
-  <label for="hT">Keel depth at the tail <output id="hTo" class="num"></output></label><input id="hT" type="range" min="3" max="105" step="1" value="25">
+  <p class="hint">Drag the ends of the red line. Right of it hangs down as the keel; left of it is wing.</p>
+  <div class="keelread">Keel depth: nose <output id="hNo" class="num"></output> · tail <output id="hTo" class="num"></output></div>
   <label>Balance</label><div class="meter"><i id="balI"></i></div><div class="meterlab"><span>tail-heavy, tumbles</span><span>nose-heavy, dives</span></div>
   <dl class="spec" id="wingSpec"></dl>
  </div>

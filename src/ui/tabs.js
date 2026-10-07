@@ -4,7 +4,7 @@
 // field | fold | wings | go | board | event. The sheet's content is per step, so a different
 // folding experience (e.g. 3D) can replace the fold step without touching the dock.
 import {$,app} from './state.js';
-import {renderFold} from './fold.js';
+import {renderFold,maybeFoldDemo} from './fold.js';
 import {renderWings} from './wings.js';
 import {renderGo} from './release.js';
 import {renderBoard} from './board.js';
@@ -18,7 +18,7 @@ export function showStep(t){if(!STEPS.includes(t))return;
   document.querySelectorAll('[data-step]').forEach(s=>s.hidden=s.dataset.step!==t);
   document.querySelectorAll('[data-stepdot]').forEach(d=>d.dataset.stepdot===t?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));
   app.audio&&app.audio.stage(t);
-  if(t==='fold')renderFold();if(t==='wings')renderWings();if(t==='go')renderGo();}
+  if(t==='fold'){renderFold();maybeFoldDemo();}if(t==='wings')renderWings();if(t==='go')renderGo();}
 // Kept for callers of the old tab API.
 export const showTab=showStep;
 

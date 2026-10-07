@@ -182,3 +182,26 @@ test('a plane whose saved flight is impossible stays out of the field and the re
   await expect(page.locator('#ticker')).toContainText('too good to be true');await expect(page.locator('#card')).toBeHidden();
   expect(errs).toEqual([]);
 });
+
+test('first fold shows a demo once; wings are set by dragging the ends of the keel line',async({page})=>{
+  const errs=watchConsole(page);await page.goto(LOCAL);await page.evaluate(()=>localStorage.clear());await page.reload();
+  await page.locator('#foldBtn').click();await page.locator('[data-dock="paper"] [data-goto="fold"]').click();
+  // The demo draws a crease, shows "Fold here", folds, and hands back the blank sheet.
+  await expect(page.locator('#foldHint')).toContainText('Watch');
+  await expect(page.locator('#foldSvg text')).toHaveText('Fold here',{timeout:5e3});
+  await expect(page.locator('#foldHint')).toHaveText(/Your turn/,{timeout:8e3});
+  await expect(page.locator('#foldSvg text')).toHaveCount(0);
+  // Not again on the next visit; "Show me" replays it.
+  await page.reload();await page.locator('#foldBtn').click();await page.locator('[data-dock="paper"] [data-goto="fold"]').click();
+  await page.waitForTimeout(1500);await expect(page.locator('#foldHint')).not.toContainText('Watch');
+  await page.locator('#foldDemoBtn').click();await expect(page.locator('#foldHint')).toContainText('Watch');
+  // Wings: no sliders; both ends of the line have handles and dragging one sets that depth.
+  await page.locator('[data-stepdot="wings"]').click();
+  await expect(page.locator('#wingSvg input, #hN, #hT')).toHaveCount(0);
+  await expect(page.locator('#wingSvg [data-end]')).toHaveCount(2);
+  await expect(page.locator('.keelread')).toHaveText('Keel depth: nose 15 mm · tail 25 mm');
+  const h=await page.locator('#wingSvg [data-end="hT"] circle').last().boundingBox();const x=h.x+h.width/2,y=h.y+h.height/2;
+  await page.mouse.move(x,y);await page.mouse.down();for(let i=1;i<=5;i++)await page.mouse.move(x-i*8,y);await page.mouse.up();
+  await expect(page.locator('.keelread')).not.toContainText('tail 25 mm');await expect(page.locator('.keelread')).toContainText('nose 15 mm');
+  expect(errs).toEqual([]);
+});

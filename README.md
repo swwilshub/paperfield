@@ -15,8 +15,9 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
 - **Every action is in the dock** at the bottom. *Fold a plane* opens the designer, one step at a time
   (tap a step's name to jump back):
   1. **Paper**: 62 colours and printed patterns (graph, blueprint, tartan, sakura, honeycomb, rainbow…), or *Random*.
-  2. **Fold**: drag across the sheet to crease it. Folds are mirrored, like a real plane.
-  3. **Wings**: set the keel line, which decides what hangs down and what becomes wing.
+  2. **Fold**: drag across the sheet to crease it. Folds are mirrored, like a real plane. The first time, a short demo
+     shows a corner being folded (*Show me* replays it).
+  3. **Wings**: drag either end of the keel line to set how deep the keel hangs at the nose and tail; the rest is wing.
   4. **Release**: your plane turns slowly above the sheet. Release it and the sheet folds up in front of you, then the countdown starts.
 - **The throw** plays as an event: countdown, flight, landing, then a points breakdown.
 - **Sharing**: every plane has a link (`?plane=<id>`) that opens the field on that plane where it landed, and a

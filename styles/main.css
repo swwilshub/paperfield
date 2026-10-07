@@ -111,6 +111,7 @@ body{background:var(--paper);--dockH:calc(84px + env(safe-area-inset-bottom,0px)
 .steps button[aria-current="step"]{color:var(--ink)}
 .steps button[aria-current="step"]::after{content:"";display:block;height:3px;border-radius:2px;background:var(--pen);margin-top:3px}
 .step[hidden]{display:none}
+#wingSvg .grab{cursor:grab}.keelread{font-size:14px;font-weight:600;margin:4px 0 10px;text-align:center}
 #foldSvg,#wingSvg{display:block;margin:0 auto;width:auto;max-width:100%;height:min(40dvh,360px);touch-action:none;user-select:none;-webkit-user-select:none}
 .steprow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
 #orientBox{margin:0;flex:0 0 auto}#orientBox[hidden]{display:none}
