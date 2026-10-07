@@ -11,7 +11,7 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
       m.position.copy(pos);const a=Math.random()*Math.PI*2,sp=2+Math.random()*5;bits.push({m,v:new THREE.Vector3(Math.cos(a)*sp,4+Math.random()*6,Math.sin(a)*sp),w:new THREE.Vector3(Math.random()*9,Math.random()*9,Math.random()*9),life:2.6});scene.add(m);}}
   function callout(text,big){const c=$('callout');c.textContent=text;c.className=big?'show big':'show';void c.offsetWidth;clearTimeout(c._t);c._t=setTimeout(()=>{c.className='';},big?2600:1600);}
   function event(p,opts){opts=opts||{};W.hideCard();$('toast').hidden=true;let it=W.items.get(p.id);if(!it)it=W.add(p,'event');if(!it){if(opts.onLand)opts.onLand();return;}
-    const fi=W.flights.indexOf(it);if(fi>=0)W.flights.splice(fi,1);if(W.ev)endEvent(true);
+    const fi=W.flights.indexOf(it);if(fi>=0)W.flights.splice(fi,1);W.unpin(it,'flight');if(W.ev)endEvent(true);W.pin(it,'event');   // a full mesh for the whole event
     trailN=0;trailGeo.setDrawRange(0,0);
     const ms=[25,50,75].map(d=>({d,txt:d+' m'}));if(opts.recordDist&&opts.recordDist>3)ms.push({d:opts.recordDist,txt:'New field record!',big:true});ms.push({d:GUIN.dist,txt:'Past the world record!',big:true});ms.sort((a,b)=>a.d-b.d);
     W.setRecordRing(opts.recordDist||0);
@@ -22,7 +22,7 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
     if(ev.phase==='count'){audio.countdown(p.id);callout('3',true);}else{audio.setSong(p.id);audio.go();}}
   function endEvent(silent){const ev=W.ev;if(!ev)return;const it=ev.it;if(ev.phase!=='land')W.rest(it);const O=W.O;
     const P=it.g.position;const d=cam.position.clone().sub(P);O.tx=P.x;O.ty=0;O.tz=P.z;O.r=Math.max(4,d.length());O.el=Math.max(0.05,Math.asin(Math.max(-1,Math.min(1,d.y/O.r))));O.az=Math.atan2(d.z,d.x);
-    cam.fov=50;cam.updateProjectionMatrix();W.ev=null;wrap.classList.remove('event');if(app.ui)app.ui.eventMode(false);setTimeout(W.resize,30);$('skip').hidden=true;$('flightHud').style.display='none';$('callout').className='';$('eventInfo').innerHTML='';$('reveal').hidden=true;audio.idle();if(!silent)W.showCard(it.p);}
+    cam.fov=50;cam.updateProjectionMatrix();W.ev=null;wrap.classList.remove('event');if(app.ui)app.ui.eventMode(false);setTimeout(W.resize,30);$('skip').hidden=true;$('flightHud').style.display='none';$('callout').className='';$('eventInfo').innerHTML='';$('reveal').hidden=true;audio.idle();W.unpin(it,'event');if(!silent)W.showCard(it.p);}
   $('skip').onclick=()=>{const ev=W.ev;if(!ev)return;if(ev.phase==='crumple'){crumpled();return;}if(ev.phase==='land'){endEvent();return;}land();};
   function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);
     if(ev.opts.extreme){ev.phase='crumple';ev.t=0;$('flightHud').style.display='none';audio.land({dist:p.dist});return;}

@@ -11,6 +11,7 @@ import {createWorld} from './world/scene.js';
 import {openStore} from './net/store.js';
 import {linkedPlane} from './ui/share.js';
 import {suspicious,genuine} from './net/verify.js';
+import {benchCount,benchPlanes} from './net/bench.js';
 
 app.audio=audio;
 // For tests and the console: window.paperfield.audio.debug() shows the music stage and song.
@@ -62,3 +63,7 @@ initTabs();clampKeel();renderFold();renderBoard();updateMe();
 app.world=await createWorld();
 for(const p of net.planes.values())app.world.add(p);
 await connect();
+// Performance testing: ?local&bench=1500 (net/bench.js). window.paperfield.perf() reports fps and draw calls.
+if(benchCount()){for(const p of benchPlanes(benchCount())){net.planes.set(p.id,p);app.world.add(p);}renderBoard();}
+window.paperfield.perf=(ms=3000)=>new Promise(r=>{let n=0,worst=0,last=performance.now();const t0=last;
+  const f=now=>{n++;worst=Math.max(worst,now-last);last=now;if(now-t0<ms)requestAnimationFrame(f);else r({fps:Math.round(n*1000/(now-t0)),worstFrameMs:Math.round(worst),...(app.world.info?app.world.info():{})});};requestAnimationFrame(f);});

@@ -205,3 +205,11 @@ test('first fold shows a demo once; wings are set by dragging the ends of the ke
   await expect(page.locator('.keelread')).not.toContainText('tail 25 mm');await expect(page.locator('.keelread')).toContainText('nose 15 mm');
   expect(errs).toEqual([]);
 });
+
+test('a field of 1 500 planes draws in a handful of calls',async({page})=>{
+  test.setTimeout(120e3);const errs=watchConsole(page);await page.goto(LOCAL);await page.evaluate(()=>localStorage.clear());
+  await page.goto(LOCAL+'&bench=1500');await page.waitForFunction(()=>window.paperfield&&window.paperfield.perf,null,{timeout:60e3});
+  const perf=await page.evaluate(()=>window.paperfield.perf(1500));
+  expect(perf.planes).toBe(1500);expect(perf.calls).toBeLessThan(200);   // was ~4 000: one batch for the field, full meshes only up close
+  expect(errs).toEqual([]);
+});
