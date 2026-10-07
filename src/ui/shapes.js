@@ -4,7 +4,10 @@ import {paperDef,paperFill} from './papers.js';
 
 export function pieces(p){const cx=p.W/2,len=Math.max(1,p.yTip-p.yMin);const polys=applyFolds(p.W,p.L,p.folds);
   const P0=[cx-p.hT,p.yMin],P1=[cx-p.hN,p.yTip];const n=lineNormal({P:P0,Q:P1});const sg=((0-P0[0])*n[0]+((P0[1]+P1[1])/2-P0[1])*n[1])>0?1:-1;
-  const xf=y=>cx-(p.hT+(p.hN-p.hT)*((y-p.yMin)/len));const wing=[],keel=[];
+  // The keel line runs from yMin to yTip and holds its end offsets beyond them. Extending it instead
+  // blows up when the physics measured a much shorter plane than the folded paper (paper folded out
+  // past the sheet edge, which the layer raster doesn't count): wings kilometres wide.
+  const xf=y=>cx-(p.hT+(p.hN-p.hT)*Math.min(1,Math.max(0,(y-p.yMin)/len)));const wing=[],keel=[];
   for(const q0 of polys){const q=clipHalf(q0,[cx,0],[-1,0],1);if(q.length<3)continue;const wq=clipHalf(q,P0,n,sg),kq=clipHalf(q,P0,n,-sg);
     if(wq.length>2&&Math.abs(polyArea(wq))>0.5)wing.push(wq.map(([x,y])=>[Math.max(0,xf(y)-x),p.yTip-y]));
     if(kq.length>2&&Math.abs(polyArea(kq))>0.5)keel.push(kq.map(([x,y])=>[Math.max(0,x-xf(y)),p.yTip-y]));}
