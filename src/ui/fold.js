@@ -47,6 +47,7 @@ export function renderFold(){stopDemo();const W=S.W,L=S.L,cx=W/2,pad=12;const po
       const seg=lineSegIn(tmp,f.P,f.Q);if(seg)g+=`<line x1="${seg[0][0]}" y1="${seg[0][1]}" x2="${seg[1][0]}" y2="${seg[1][1]}" stroke="var(--fold)" stroke-width="2.4" stroke-dasharray="7 4"/>`;tmp=foldPolys(tmp,f);}
     for(const pl of tmp)g+=`<polygon points="${polyPts(pl)}" fill="none" stroke="var(--pen)" stroke-width="1.6" stroke-dasharray="4 3"/>`;}
   if(S.drag){const a=S.drag.a,b=S.drag.b||S.drag.a;g+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--fold)" stroke-width="2.4"/><circle cx="${a[0]}" cy="${a[1]}" r="3.5" fill="var(--fold)"/><circle cx="${b[0]}" cy="${b[1]}" r="3.5" fill="var(--fold)"/>`;}
+  if(kb){const [x,y]=kb.p;g+=`<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="var(--pen)" stroke-width="1.6"/><path d="M${x-10} ${y}h6M${x+4} ${y}h6M${x} ${y-10}v6M${x} ${y+4}v6" stroke="var(--pen)" stroke-width="1.4"/>`;}
   g+='</g>';fsvg.innerHTML=g;
   $('orientBox').hidden=S.folds.length>0;$('undo').disabled=!S.actions.length;$('restart').disabled=!S.folds.length;
   $('foldCount').textContent=S.actions.length?`${S.actions.length} crease${S.actions.length>1?'s':''} so far.`:'';
@@ -59,10 +60,24 @@ $('foldDemoBtn').addEventListener('click',()=>{if(S.folds.length)return;S.pendin
 fsvg.addEventListener('pointerdown',e=>{if(app.audio)app.audio.stage('fold');if(S.actions.length>=14){$('foldHint').innerHTML='<span class="err">That\'s 14 creases. The paper won\'t take more.</span>';return;}
   fsvg.setPointerCapture(e.pointerId);const polys=curPolys();S.pending=null;S.drag={a:snap(svgPoint(e),polys),b:null,polys};renderFold();});
 fsvg.addEventListener('pointermove',e=>{if(!S.drag)return;S.drag.b=snap(svgPoint(e),S.drag.polys);renderFold();});
-fsvg.addEventListener('pointerup',()=>{if(!S.drag)return;const d=S.drag;S.drag=null;if(!d.b){renderFold();return;}
+fsvg.addEventListener('pointerup',()=>{if(!S.drag)return;const d=S.drag;S.drag=null;if(!d.b){renderFold();return;}finishCrease(d);});
+// A crease line drawn (by pointer or keyboard): check it and show it as pending, ready to fold.
+function finishCrease(d){
   const res=resolveFold(d.a,d.b,false);S.pending={a:d.a,b:d.b,flip:false,res};
   $('foldHint').innerHTML=res.err?`<span class="err">${res.err}</span>`:res.snapped?'Across the middle: snapped level so both halves fold together. Blue shows the paper that moves.':'Blue shows the paper that moves. The same fold happens on the other side.';
-  if(res.err)S.pending=null;renderFold();cue(res.err?'nope':'pending');});
+  if(res.err)S.pending=null;renderFold();cue(res.err?'nope':'pending');}
+// Keyboard: a cursor on the sheet moved with the arrow keys (5 mm, or 25 mm with Shift); Enter sets the
+// crease's start and then its end, Escape cancels. Then Fold in the dock, as with a pointer.
+let kb=null;
+fsvg.addEventListener('focus',()=>{if(!kb&&fsvg.matches(':focus-visible')){kb={p:[S.W/2,S.L]};renderFold();}});   // not on a mouse click
+fsvg.addEventListener('blur',()=>{kb=null;if(S.drag&&S.drag.kb)S.drag=null;renderFold();});
+fsvg.addEventListener('keydown',e=>{if(!kb)kb={p:[S.W/2,S.L]};const step=e.shiftKey?25:5,mv={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,step],ArrowDown:[0,-step]}[e.key];
+  if(mv){e.preventDefault();kb.p=[Math.max(0,Math.min(S.W,kb.p[0]+mv[0])),Math.max(0,Math.min(S.L,kb.p[1]+mv[1]))];if(S.drag&&S.drag.kb)S.drag.b=snap(kb.p,S.drag.polys);renderFold();return;}
+  if(e.key==='Escape'){if(S.drag&&S.drag.kb){S.drag=null;$('foldHint').textContent='Cancelled.';renderFold();}return;}
+  if(e.key!=='Enter'&&e.key!==' ')return;e.preventDefault();
+  if(!(S.drag&&S.drag.kb)){if(S.actions.length>=14)return;if(app.audio)app.audio.stage('fold');const polys=curPolys();S.pending=null;const a=snap(kb.p,polys);
+    S.drag={a,b:a,polys,kb:true};$('foldHint').textContent=`Start set at ${Math.round(a[0])}, ${Math.round(a[1])} mm. Move to the end of the crease and press Enter.`;renderFold();return;}
+  const d=S.drag;S.drag=null;d.b=snap(kb.p,d.polys);finishCrease(d);});
 fsvg.addEventListener('pointercancel',()=>{S.drag=null;renderFold();});
 $('flipFold').addEventListener('click',()=>{const p=S.pending;if(!p)return;const res=resolveFold(p.a,p.b,!p.flip);if(res.err){$('foldHint').innerHTML=`<span class="err">${res.err}</span>`;return;}p.flip=!p.flip;p.res=res;renderFold();});
 $('doFold').addEventListener('click',()=>{const p=S.pending;if(!p||!p.res.folds)return;S.folds=S.folds.concat(p.res.folds);S.actions.push(p.res.folds.length);S.pending=null;$('foldHint').textContent='Folded. Draw another crease, or move on to the wings.';clampKeel();renderFold();});

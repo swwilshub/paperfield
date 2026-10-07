@@ -25,4 +25,6 @@ export function ago(t){const m=Math.round((Date.now()-t)/60000);if(m<1)return'ju
 export function curPolys(){return applyFolds(S.W,S.L,S.folds);}
 export function spec(){return{W:S.W,L:S.L,folds:S.folds,hT:S.hT,hN:S.hN,gsm:S.gsm,dih:S.dih,delta:S.elev,style:S.style};}
 export const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Read something out to screen readers (a polite live region; the same text twice is still announced).
+export function announce(text){const el=document.getElementById('announce');if(!el)return;el.textContent='';setTimeout(()=>{el.textContent=text;},50);}
 export const nm=id=>id===net.uid?'You':((net.store&&net.store.nameOf(id))||'Someone');

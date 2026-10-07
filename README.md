@@ -29,6 +29,8 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   field, the records and its pilot's shown points; its share link plays the flight, then crumples it into a paper ball
   (`src/net/verify.js`).
 - **Pilots** get a generated name such as "Amber Heron"; planes are named by paper, e.g. "Graph paper plane".
+- **Accessible**: the sheet and the keel line work from the keyboard (arrows, Enter, Escape), each landing is read out
+  to screen readers, and reduced motion turns off the spinning preview, confetti, shake and slide-ins.
 
 ## Run locally
 
@@ -44,6 +46,14 @@ No build step: native ES modules, with pinned CDN versions in the import map (`i
 | `?local`    | Play without Firebase (planes saved in this browser) |
 | `?nolimit`  | No throw limit (local play only)                    |
 | `?emulator` | Use the Firebase emulators (localhost only)         |
+| `?local&bench=1500` | Fill the field with that many test planes (not saved) |
+
+`window.paperfield.perf()` in the console reports frame rate, draw calls and the current pixel ratio.
+
+**Performance.** Resting planes are drawn as one batched mesh (their real shapes, coloured by paper) and their
+shadows as one instanced mesh; only the 40 planes nearest the camera, and any in flight, get full patterned meshes.
+1 500 planes take about 100 draw calls (about 4 000 before). If the frame rate stays under 45 fps the pixel ratio
+steps down and the confetti thins out. three.js is r186 with colour management off, so colours match the r128 original.
 
 Reset local play with `localStorage.removeItem('onesheet-local-v1')` in the console.
 

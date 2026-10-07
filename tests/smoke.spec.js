@@ -213,3 +213,22 @@ test('a field of 1 500 planes draws in a handful of calls',async({page})=>{
   expect(perf.planes).toBe(1500);expect(perf.calls).toBeLessThan(200);   // was ~4 000: one batch for the field, full meshes only up close
   expect(errs).toEqual([]);
 });
+
+test('folding and the keel work from the keyboard; results are read out',async({page})=>{
+  test.setTimeout(120e3);const errs=watchConsole(page);await page.goto(LOCAL);
+  await page.evaluate(()=>{localStorage.clear();localStorage.setItem('paperfield-fold-demo','1');});await page.reload();
+  await page.locator('#foldBtn').click();await page.locator('[data-dock="paper"] [data-goto="fold"]').click();
+  // Cursor starts at the top middle: Enter, then 21 steps left and 21 down (105 mm each way) to the left edge, Enter.
+  await page.locator('#foldSvg').focus();await page.keyboard.press('Enter');await expect(page.locator('#foldHint')).toContainText('Start set at 105, 297');
+  for(let i=0;i<21;i++){await page.keyboard.press('ArrowLeft');await page.keyboard.press('ArrowDown');}
+  await page.keyboard.press('Enter');await expect(page.locator('#pendingBtns')).toBeVisible();
+  await page.locator('#doFold').focus();await page.keyboard.press('Enter');await expect(page.locator('#foldCount')).toHaveText('1 crease so far.');
+  // Keel: Down picks the tail end, Right makes it shallower.
+  await page.locator('#toWings').click();await page.locator('#wingSvg').focus();
+  await page.keyboard.press('ArrowDown');await page.keyboard.press('Shift+ArrowRight');
+  await expect(page.locator('.keelread')).toHaveText('Keel depth: nose 15 mm · tail 20 mm');await expect(page.locator('#announce')).toHaveText('Tail keel depth 20 mm');
+  // The landing is announced.
+  await page.locator('[data-dock="wings"] [data-goto="go"]').click();await page.locator('#release').click();
+  await expect(page.locator('#announce')).toContainText('landed',{timeout:60e3});await expect(page.locator('#announce')).toContainText('points');
+  expect(errs).toEqual([]);
+});

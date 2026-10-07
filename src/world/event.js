@@ -26,7 +26,7 @@ export function initEvent(W){const {THREE,scene,cam}=W;const audio=app.audio;
   $('skip').onclick=()=>{const ev=W.ev;if(!ev)return;if(ev.phase==='crumple'){crumpled();return;}if(ev.phase==='land'){endEvent();return;}land();};
   function land(){const ev=W.ev;const it=ev.it,p=ev.p;W.rest(it);
     if(ev.opts.extreme){ev.phase='crumple';ev.t=0;$('flightHud').style.display='none';audio.land({dist:p.dist});return;}
-    ev.phase='land';ev.t=0;audio.land({dist:p.dist,record:ev.opts.recordDist!=null&&p.dist>ev.opts.recordDist});if(!reduce)ev.shake=0.45;burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p).base);
+    ev.phase='land';ev.t=0;audio.land({dist:p.dist,record:ev.opts.recordDist!=null&&p.dist>ev.opts.recordDist});if(!reduce)ev.shake=0.45;if(!reduce)burst(it.g.position.clone().add(new THREE.Vector3(0,0.4,0)),paperOf(p).base);
     const far=p.style!=='float';callout(far?p.dist.toFixed(1)+' m':p.time.toFixed(1)+' s',true);
     $('flightHud').innerHTML=`<span class="hb num">${p.dist.toFixed(1)} m</span><span class="num">${p.time.toFixed(1)} s · peak ${p.maxZ.toFixed(1)} m</span>`;
     if(ev.opts.onLand)setTimeout(()=>{if(W.ev&&W.ev.it===it)ev.opts.onLand();},900);}

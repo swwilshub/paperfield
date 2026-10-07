@@ -9,7 +9,8 @@ export const audio=(function(){let ctx=null,eng=null,stage='idle',landT=null,las
   const tele={alt:0,speed:0,vz:0};
   function unlock(){const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
     if(!ctx){ctx=new AC();const comp=ctx.createDynamicsCompressor();comp.threshold.value=-18;comp.ratio.value=3;
-      const master=ctx.createGain();master.gain.value=0.8;master.connect(comp);comp.connect(ctx.destination);
+      const master=ctx.createGain();master.gain.setValueAtTime(0.0001,ctx.currentTime);master.gain.exponentialRampToValueAtTime(0.8,ctx.currentTime+3);   // fade in over 3 s
+      master.connect(comp);comp.connect(ctx.destination);
       eng=createEngine(ctx,master,{seed:'field'});eng.setStage(stage,ctx.currentTime,0.05);
       setInterval(()=>{if(ctx.state!=='running')return;eng.scheduleUntil(ctx.currentTime+0.25);
         if(eng.stage==='fly'){eng.setTele(tele.speed,tele.alt,tele.vz);

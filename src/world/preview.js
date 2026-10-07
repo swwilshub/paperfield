@@ -72,5 +72,5 @@ export function initPreview(W){const {THREE,cam,scene}=W;
     if(t<a.TURN){const e=ease(t/a.TURN);rig.rotation.x=FLAT*e;tilt.rotation.x=TILT*e;return;}
     rig.rotation.x=FLAT;tilt.rotation.x=TILT;spin.rotation.y+=0.8*dt;if(a.t>=a.total){anim=null;root.visible=false;a.res();}}
 
-  W.previewTick=dt=>{if(!root.visible)return;place();if(anim)tickFold(dt);else spin.rotation.y+=dt*0.5;};
+  W.previewTick=dt=>{if(!root.visible)return;place();if(anim)tickFold(dt);else if(!reduceMotion)spin.rotation.y+=dt*0.5;};
   Object.assign(W,{preview:show,foldUp});}

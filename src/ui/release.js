@@ -1,5 +1,5 @@
 // ===== release =====
-import {S,$,net,app,esc,spec,reduceMotion,planeLabel} from './state.js';
+import {S,$,net,app,esc,spec,reduceMotion,planeLabel,announce} from './state.js';
 import {cooldownLeft,fieldActivity,waitMs,freeLeft,FREE_PLANES} from '../net/cooldown.js';
 import {throwPlane} from '../core/thrower.js';
 import {planeDoc,results,scorePoints} from '../net/planedoc.js';
@@ -54,6 +54,7 @@ async function doRelease(){$('busy').style.display='grid';await new Promise(r=>s
   const recordDist=rec.dist?rec.dist.dist:0;net.planes.set(id,p);
   app.world.event(p,{countdown:true,recordDist,onLand:()=>{renderResult(p,pts,total,saved,saveErr,R);renderBoard();updateMe();renderGo();reveal(p,pts,total,saved);}});}
 export function reveal(p,pts,total,saved){const el=$('reveal');const far=p.style!=='float';el.hidden=false;
+  announce(`${planeLabel(p)} landed: ${p.dist.toFixed(1)} metres, ${p.time.toFixed(1)} seconds in the air, ${total} points.${pts.some(q=>/^Field record/.test(q[0]))?' New field record!':''}`);
   el.innerHTML=`<div class="rv-head"><div class="rv-name">${esc(planeLabel(p))}</div><div class="big num">${far?p.dist.toFixed(1):p.time.toFixed(1)}<span class="unit">${far?'m':'s'}</span></div>
    <div class="sub">${far?`${p.time.toFixed(1)} s in the air`:`${p.dist.toFixed(1)} m forward`} · peak ${p.maxZ.toFixed(1)} m${p.loops?` · ${p.loops} loop${p.loops>1?'s':''}`:''}</div></div>
    <table class="rv-t"><tbody></tbody></table><div class="rv-total num">0</div><div class="btns rv-share" style="justify-content:center">${app.world.snapshot?'<button class="btn" type="button" id="rvPhoto">Photo</button>':''}${saved?'<button class="btn" type="button" id="rvShare">Share</button>':''}</div>

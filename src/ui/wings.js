@@ -1,7 +1,7 @@
 // ===== wings =====
 // The wing fold is a line on the half plane, from the tail to the nose. It's always drawn with a handle
 // at each end; dragging an end (like drawing a crease on the fold step) sets the keel depth there.
-import {S,$,app,curPolys,spec,paperOf} from './state.js';
+import {S,$,app,curPolys,spec,paperOf,announce} from './state.js';
 import {svgPaper} from './papers.js';
 import {clipHalf} from '../core/folds.js';
 import {geometry} from '../core/geometry.js';
@@ -50,3 +50,9 @@ let keelT=0;
 function move(p){const cx=Math.floor(S.W/2),v=Math.round(S.W/2-p[0]);const before=S[drag.k];S[drag.k]=v;clampKeel();
   const now=performance.now();if(S[drag.k]!==before&&app.audio&&now-keelT>80){keelT=now;app.audio.cue('keel',{v:S[drag.k]/cx});}
   if(!raf)raf=requestAnimationFrame(()=>{raf=0;renderWings();});}
+
+// Keyboard: Up/Down pick the nose or tail end, Left/Right move it 1 mm (5 mm with Shift).
+let kEnd='hN';
+wsvg.addEventListener('keydown',e=>{if(e.key==='ArrowUp'||e.key==='ArrowDown'){e.preventDefault();kEnd=e.key==='ArrowUp'?'hN':'hT';announce(`${kEnd==='hN'?'Nose':'Tail'} end, ${S[kEnd]} mm`);return;}
+  const d={ArrowLeft:1,ArrowRight:-1}[e.key];if(!d)return;e.preventDefault();S[kEnd]+=d*(e.shiftKey?5:1);clampKeel();renderWings();
+  if(app.audio)app.audio.cue('keel',{v:S[kEnd]/Math.floor(S.W/2)});announce(`${kEnd==='hN'?'Nose':'Tail'} keel depth ${S[kEnd]} mm`);});

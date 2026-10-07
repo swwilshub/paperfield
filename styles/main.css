@@ -158,3 +158,7 @@ body:not([data-mode="field"]) #empty,body:not([data-mode="field"]) #card,body:no
 #designer h3 output{font-weight:650;color:var(--graphite);margin-left:6px}
 #card .cardBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#card .cardBtns .btn{padding:5px 10px;font-size:13px}
 #reveal .rv-share{margin-bottom:8px}#reveal .rv-share:empty{display:none}
+
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+#foldSvg:focus-visible,#wingSvg:focus-visible{outline:3px solid var(--pen);outline-offset:3px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
