@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// One Sheet. Tested in tests/rules.test.js against the Firestore emulator.
+// Paperfield. Tested in tests/rules.test.js against the Firestore emulator.
 //
 // A throw is one batch: create planes/{id} and update pilots/{uid} together. Each side checks
 // the other with getAfter(), so neither can be written alone. What the rules can't check:

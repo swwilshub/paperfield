@@ -1,4 +1,4 @@
-# One Sheet
+# Paperfield
 
 A multiplayer paper-plane game. Players fold an A4 sheet in the browser (how often depends on how busy the field is: src/net/cooldown.js), pick a paper, and release it. A fixed automatic thrower flies it through a physics model. Every plane stays where it landed in a shared 3D field. Points come from distance, hang time and records.
 

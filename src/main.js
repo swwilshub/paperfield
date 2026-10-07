@@ -13,8 +13,8 @@ import {linkedPlane} from './ui/share.js';
 import {suspicious,genuine} from './net/verify.js';
 
 app.audio=audio;
-// For tests and the console: window.oneSheet.audio.debug() shows the music stage and song.
-window.oneSheet={audio};
+// For tests and the console: window.paperfield.audio.debug() shows the music stage and song.
+window.paperfield={audio};
 // Until three.js has loaded, releases still score and reveal; the plane just isn't shown flying.
 app.world={add(){},focus(){},event(p,o){if(o&&o.onLand)o.onLand();},busy:()=>false,end(){}};
 

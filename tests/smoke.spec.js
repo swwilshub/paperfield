@@ -87,7 +87,7 @@ test('full fold, wings, release, event and reveal loop works locally',async({pag
   await page.locator('#doFold').click();
   await expect(page.locator('#foldCount')).toHaveText('1 crease so far.');
   // Music starts on the first interaction, and folding brings in the fold stage.
-  await page.waitForFunction(()=>window.oneSheet.audio.debug()&&window.oneSheet.audio.debug().stage==='fold');
+  await page.waitForFunction(()=>window.paperfield.audio.debug()&&window.paperfield.audio.debug().stage==='fold');
 
   await page.locator('#toWings').click();
   await expect(page.locator('#wingSpec')).toContainText('Wingspan');
@@ -136,7 +136,7 @@ test('a landed plane can be photographed and shared; its link opens on the plane
 
   // Photo: a PNG of the field with the plane, downloaded when the share sheet can't take files.
   const dl=page.waitForEvent('download');await page.locator('#rvPhoto').click();const file=await dl;
-  expect(file.suggestedFilename()).toBe('one-sheet-graph-paper-plane.png');
+  expect(file.suggestedFilename()).toBe('paperfield-graph-paper-plane.png');
   const png=await file.createReadStream().then(s=>new Promise(r=>{const b=[];s.on('data',d=>b.push(d));s.on('end',()=>r(Buffer.concat(b)));}));
   expect(png.subarray(1,4).toString()).toBe('PNG');expect(png.length).toBeGreaterThan(5000);
 

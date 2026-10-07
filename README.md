@@ -1,4 +1,4 @@
-# One Sheet
+# Paperfield
 
 A multiplayer paper-plane game: <https://swwilshub.github.io/paperfield/>
 
