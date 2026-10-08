@@ -173,9 +173,9 @@ test('a plane whose saved flight is impossible stays out of the field and the re
   await page.locator('#openBoard').click();
   await expect(page.locator('#recs')).toContainText(real.toFixed(1).replace(/\.0$/,'')+' m');await expect(page.locator('#recs')).not.toContainText('500 m');
   await expect(page.locator('#ticker')).not.toContainText('500 m');
-  // The leaderboard takes the binned plane off its pilot: 1 plane, 40 points.
+  // Once the background check has re-flown them (slow on CI), the leaderboard counts only the real plane: 1 plane, 40 points.
   const row=page.locator('#pilots tr').filter({hasNotText:'You'});
-  await expect(row.locator('td').nth(1)).toHaveText('1');await expect(row.locator('td').nth(2)).toHaveText('40');
+  await expect(row.locator('td').nth(1)).toHaveText('1',{timeout:20e3});await expect(row.locator('td').nth(2)).toHaveText('40');
   // Its share link still shows the flight, then the plane is crumpled and the field comes back.
   await page.goto(LOCAL+'&plane=fake-plane');
   await expect(page.locator('#worldWrap')).toHaveClass(/event/,{timeout:20e3});
