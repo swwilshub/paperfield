@@ -57,25 +57,25 @@ export function initPreview(W){const {THREE,cam,scene}=W;
 
   // Turntable pose: the plane lies flat (rig) on a table leaning towards you (tilt) and turns on it (spin).
   const FLAT=-Math.PI/2,TILT=0.6;
-  function show(spec){anim=null;if(!spec){root.visible=false;return;}const m=use(spec);m.plane(1);
+  function show(spec){anim=null;tilt.position.y=0;if(!spec){root.visible=false;return;}const m=use(spec);m.plane(1);fade(m,1);
     const was=root.visible;rig.rotation.set(FLAT,0,0);tilt.rotation.set(TILT,0,0);if(!was)spin.rotation.set(0,0.8,0);root.visible=true;place(0,!was);}
 
-  // The fold-up: resolves when the plane is ready to throw. It carries on from the turntable without a cut:
-  // SETTLE (finish the turn and face you), UNWING (wings fold flat), REWIND (creases undo, quickly, last first),
-  // then the fold-up proper: each CREASE, the PLANE folds, TURN onto the turntable, HOLD.
+  // The fold-up: resolves when the plane is ready to throw. The spinning plane FADEs away, a fresh flat sheet
+  // slides IN, each CREASE folds, the PLANE folds, it TURNs onto the turntable and HOLDs, then the throw.
+  function fade(m,o){const mt=m.mesh.material,tr=o<1;if(mt.transparent!==tr){mt.transparent=tr;mt.depthWrite=!tr;mt.needsUpdate=true;}mt.opacity=o;}
   function foldUp(spec){if(reduceMotion||!spec)return Promise.resolve();const m=use(spec);const shown=root.visible;root.visible=true;
     if(!shown){m.plane(1);rig.rotation.set(FLAT,0,0);tilt.rotation.set(TILT,0,0);spin.rotation.set(0,0,0);place(0,true);}
-    const T={SETTLE:0.6,UNWING:0.35,REWIND:Math.min(0.8,m.steps*0.12),CREASE:0.55,PLANE:1.5,TURN:0.9,HOLD:0.5};
-    const total=T.SETTLE+T.UNWING+T.REWIND+m.steps*T.CREASE+T.PLANE+T.TURN+T.HOLD;
-    const from={spin:spin.rotation.y,tilt:tilt.rotation.x,rig:rig.rotation.x},to=Math.ceil(spin.rotation.y/(2*Math.PI)+0.05)*2*Math.PI;
-    return new Promise(res=>{anim={t:0,total,m,res,lastStep:-1,T,from,to,flat:false};});}
+    const T={FADE:shown?0.45:0,IN:0.45,CREASE:0.55,PLANE:1.5,TURN:0.9,HOLD:0.5};
+    const total=T.FADE+T.IN+m.steps*T.CREASE+T.PLANE+T.TURN+T.HOLD;
+    return new Promise(res=>{anim={t:0,total,m,res,lastStep:-1,T,flat:false,swapped:false};});}
   function tickFold(dt){const a=anim,m=a.m,T=a.T;a.t+=dt;let t=a.t;
-    if(t<T.SETTLE){const e=ease(t/T.SETTLE);spin.rotation.y=a.from.spin+(a.to-a.from.spin)*e;tilt.rotation.x=a.from.tilt*(1-e);rig.rotation.x=a.from.rig*(1-e);m.plane(1);return;}
-    t-=T.SETTLE;spin.rotation.y=0;tilt.rotation.x=0;rig.rotation.x=0;a.flat=true;
-    if(t<T.UNWING){m.plane(1-ease(t/T.UNWING));return;}
-    t-=T.UNWING;
-    if(t<T.REWIND){const per=T.REWIND/m.steps,k=Math.floor(t/per),i=m.steps-1-k;m.crease(i,Math.PI*(1-ease((t-k*per)/per)));return;}
-    t-=T.REWIND;
+    // The plane on the turntable fades away, still turning.
+    if(t<T.FADE){fade(m,1-ease(t/T.FADE));spin.rotation.y+=dt*0.5;return;}
+    t-=T.FADE;
+    // A new, flat sheet: facing you, sized for the whole sheet, sliding up into place as it fades in.
+    if(!a.swapped){a.swapped=true;a.flat=true;if(m.steps)m.crease(0,0);else m.plane(0);rig.rotation.set(0,0,0);tilt.rotation.set(0,0,0);spin.rotation.set(0,0,0);place(0,true);}
+    if(t<T.IN){const e=ease(t/T.IN);fade(m,e);tilt.position.y=-0.25*(1-e)*m.full*sc;return;}
+    tilt.position.y=0;fade(m,1);t-=T.IN;
     if(t<m.steps*T.CREASE){const i=Math.floor(t/T.CREASE);if(i!==a.lastStep){a.lastStep=i;app.audio&&app.audio.cue('crease',{n:i});}m.crease(i,Math.PI*ease((t-i*T.CREASE)/T.CREASE));return;}
     t-=m.steps*T.CREASE;
     if(t<T.PLANE){if(a.lastStep!==-2){a.lastStep=-2;app.audio&&app.audio.cue('step');}m.plane(ease(t/T.PLANE));return;}
