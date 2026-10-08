@@ -48,29 +48,41 @@ export function initPreview(W){const {THREE,cam,scene}=W;
   function use(spec){const k=JSON.stringify(spec);if(k===key&&model)return model;if(model)model.dispose();key=k;model=build(spec);return model;}
 
   // Keep the rig in the free space above the sheet (or centred when no sheet is open), sized to fit.
-  function place(){const vh=innerHeight,top=60;const sheet=$('designer');const bottom=sheet&&!sheet.hidden?sheet.getBoundingClientRect().top:vh*0.8;
+  // It glides there (the sheet closing on Release would otherwise make it jump); `snap` places it at once.
+  function place(dt,snap){const vh=innerHeight,top=60;const sheet=$('designer');const bottom=sheet&&!sheet.hidden?sheet.getBoundingClientRect().top:vh*0.8;
     const d=6,half=d*Math.tan(cam.fov*Math.PI/360);const mid=(top+bottom)/2,ndc=1-2*mid/vh;
-    root.position.set(0,ndc*half,-d);const avail=(bottom-top)/vh*2*half;const L=(model?(anim?model.full:model.len):297)*sc;root.scale.setScalar(Math.max(0.3,Math.min(1.4,0.8*avail/L)));
-    halo.scale.setScalar(L*1.5);}
+    const avail=(bottom-top)/vh*2*half;const L=(model?(anim&&anim.flat?model.full:model.len):297)*sc;const scale=Math.max(0.3,Math.min(1.4,0.8*avail/L));
+    const k=snap?1:1-Math.exp(-dt*6);root.position.x=0;root.position.z=-d;root.position.y+=(ndc*half-root.position.y)*k;
+    root.scale.setScalar(root.scale.x+(scale-root.scale.x)*k);halo.scale.setScalar(L*1.5);}
 
   // Turntable pose: the plane lies flat (rig) on a table leaning towards you (tilt) and turns on it (spin).
   const FLAT=-Math.PI/2,TILT=0.6;
   function show(spec){anim=null;if(!spec){root.visible=false;return;}const m=use(spec);m.plane(1);
-    rig.rotation.set(FLAT,0,0);tilt.rotation.set(TILT,0,0);spin.rotation.set(0,0.8,0);root.visible=true;place();}
+    const was=root.visible;rig.rotation.set(FLAT,0,0);tilt.rotation.set(TILT,0,0);if(!was)spin.rotation.set(0,0.8,0);root.visible=true;place(0,!was);}
 
-  // The fold-up: resolves when the plane is ready to throw.
-  function foldUp(spec){if(reduceMotion||!spec)return Promise.resolve();const m=use(spec);if(m.steps)m.crease(0,0);else m.plane(0);
-    rig.rotation.set(0,0,0);tilt.rotation.set(0,0,0);spin.rotation.set(0,0,0);root.visible=true;
-    const CREASE=0.55,PLANE=1.5,TURN=0.9,HOLD=0.5;const total=m.steps*CREASE+PLANE+TURN+HOLD;
-    return new Promise(res=>{anim={t:0,total,m,res,lastStep:-1,CREASE,PLANE,TURN};});}
-  function tickFold(dt){const a=anim,m=a.m;a.t+=dt;let t=a.t;
-    if(t<m.steps*a.CREASE){const i=Math.floor(t/a.CREASE);if(i!==a.lastStep){a.lastStep=i;app.audio&&app.audio.cue('crease',{n:i});}m.crease(i,Math.PI*ease((t-i*a.CREASE)/a.CREASE));return;}
-    t-=m.steps*a.CREASE;
-    if(t<a.PLANE){if(a.lastStep!==-2){a.lastStep=-2;app.audio&&app.audio.cue('step');}m.plane(ease(t/a.PLANE));return;}
-    t-=a.PLANE;m.plane(1);
+  // The fold-up: resolves when the plane is ready to throw. It carries on from the turntable without a cut:
+  // SETTLE (finish the turn and face you), UNWING (wings fold flat), REWIND (creases undo, quickly, last first),
+  // then the fold-up proper: each CREASE, the PLANE folds, TURN onto the turntable, HOLD.
+  function foldUp(spec){if(reduceMotion||!spec)return Promise.resolve();const m=use(spec);const shown=root.visible;root.visible=true;
+    if(!shown){m.plane(1);rig.rotation.set(FLAT,0,0);tilt.rotation.set(TILT,0,0);spin.rotation.set(0,0,0);place(0,true);}
+    const T={SETTLE:0.6,UNWING:0.35,REWIND:Math.min(0.8,m.steps*0.12),CREASE:0.55,PLANE:1.5,TURN:0.9,HOLD:0.5};
+    const total=T.SETTLE+T.UNWING+T.REWIND+m.steps*T.CREASE+T.PLANE+T.TURN+T.HOLD;
+    const from={spin:spin.rotation.y,tilt:tilt.rotation.x,rig:rig.rotation.x},to=Math.ceil(spin.rotation.y/(2*Math.PI)+0.05)*2*Math.PI;
+    return new Promise(res=>{anim={t:0,total,m,res,lastStep:-1,T,from,to,flat:false};});}
+  function tickFold(dt){const a=anim,m=a.m,T=a.T;a.t+=dt;let t=a.t;
+    if(t<T.SETTLE){const e=ease(t/T.SETTLE);spin.rotation.y=a.from.spin+(a.to-a.from.spin)*e;tilt.rotation.x=a.from.tilt*(1-e);rig.rotation.x=a.from.rig*(1-e);m.plane(1);return;}
+    t-=T.SETTLE;spin.rotation.y=0;tilt.rotation.x=0;rig.rotation.x=0;a.flat=true;
+    if(t<T.UNWING){m.plane(1-ease(t/T.UNWING));return;}
+    t-=T.UNWING;
+    if(t<T.REWIND){const per=T.REWIND/m.steps,k=Math.floor(t/per),i=m.steps-1-k;m.crease(i,Math.PI*(1-ease((t-k*per)/per)));return;}
+    t-=T.REWIND;
+    if(t<m.steps*T.CREASE){const i=Math.floor(t/T.CREASE);if(i!==a.lastStep){a.lastStep=i;app.audio&&app.audio.cue('crease',{n:i});}m.crease(i,Math.PI*ease((t-i*T.CREASE)/T.CREASE));return;}
+    t-=m.steps*T.CREASE;
+    if(t<T.PLANE){if(a.lastStep!==-2){a.lastStep=-2;app.audio&&app.audio.cue('step');}m.plane(ease(t/T.PLANE));return;}
+    t-=T.PLANE;m.plane(1);a.flat=false;
     // Settle onto the turntable, then turn a little before the throw.
-    if(t<a.TURN){const e=ease(t/a.TURN);rig.rotation.x=FLAT*e;tilt.rotation.x=TILT*e;return;}
+    if(t<T.TURN){const e=ease(t/T.TURN);rig.rotation.x=FLAT*e;tilt.rotation.x=TILT*e;return;}
     rig.rotation.x=FLAT;tilt.rotation.x=TILT;spin.rotation.y+=0.8*dt;if(a.t>=a.total){anim=null;root.visible=false;a.res();}}
 
-  W.previewTick=dt=>{if(!root.visible)return;place();if(anim)tickFold(dt);else if(!reduceMotion)spin.rotation.y+=dt*0.5;};
+  W.previewTick=dt=>{if(!root.visible)return;place(dt);if(anim)tickFold(dt);else if(!reduceMotion)spin.rotation.y+=dt*0.5;};
   Object.assign(W,{preview:show,foldUp});}
