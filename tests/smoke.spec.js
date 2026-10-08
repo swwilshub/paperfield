@@ -164,9 +164,9 @@ test('a plane whose saved flight is impossible stays out of the field and the re
   const real=await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('onesheet-local-v1'));const p=d.planes[0];
     const fake=Object.assign({},p,{id:'fake-plane',pid:'cheater',uid:'cheater',dist:500,time:24,maxZ:200,loops:12,points:1300,at:Date.now()});
     // ...the real plane now belongs to the same pilot, worth 40 points (re-flying checks the flight, not who threw it),
-    // plus a copy of it under a new id, which re-flies differently: caught although its numbers look ordinary.
+    // plus a copy of it claiming 5 m more than it flies: ordinary-looking numbers, but false, so caught.
     Object.assign(p,{pid:'cheater',uid:'cheater',points:40});
-    d.planes.push(fake,Object.assign({},p,{id:'copied-plane',at:Date.now()-1000}));
+    d.planes.push(fake,Object.assign({},p,{id:'padded-plane',dist:Math.round((p.dist+5)*10)/10,at:Date.now()-1000}));
     d.pilots.cheater={score:1300+40+40,planes:3,last:Date.now(),lastPlane:'fake-plane',pbDist:500,pbTime:24};
     localStorage.removeItem('paperfield-verified');localStorage.setItem('onesheet-local-v1',JSON.stringify(d));return p.dist;});
   await page.reload();await expect(page.locator('#me')).toContainText('pts');
