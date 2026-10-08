@@ -14,8 +14,12 @@ function blurb(p){return `${planeLabel(p)} flew ${p.dist.toFixed(1)} m in Paperf
 
 const aborted=e=>e&&e.name==='AbortError';
 
+// Share the link, with the plane's photo attached where the device can share files, so the share sheet
+// (and the message) shows the plane rather than a bare link. Falls back to the link alone, then the clipboard.
 export async function sharePlane(p){const url=planeUrl(p.id);
-  if(navigator.share)try{await navigator.share({title:'Paperfield',text:blurb(p),url});return 'shared';}catch(e){if(aborted(e))return 'cancelled';}
+  if(navigator.share){const file=await photoFile(p);
+    if(file&&navigator.canShare&&navigator.canShare({files:[file]}))try{await navigator.share({files:[file],title:'Paperfield',text:blurb(p)+' '+url});return 'shared';}catch(e){if(aborted(e))return 'cancelled';}
+    try{await navigator.share({title:'Paperfield',text:blurb(p),url});return 'shared';}catch(e){if(aborted(e))return 'cancelled';}}
   try{await navigator.clipboard.writeText(url);return 'copied';}
   catch(e){prompt('Copy this link',url);return 'shown';}}
 
@@ -29,9 +33,9 @@ export function photo(p){const shot=app.world.snapshot&&app.world.snapshot(p.id)
   x.textAlign='right';x.font=`800 ${13*u}px Archivo, sans-serif`;x.fillText('Paperfield',w-14*u,h-band+42*u);x.textAlign='left';
   return shot;}
 
-export async function sharePhoto(p){const c=photo(p);if(!c)return 'none';
-  const blob=await new Promise(r=>c.toBlob(r,'image/png'));const name=`paperfield-${planeLabel(p).toLowerCase().replace(/[^a-z0-9]+/g,'-')}.png`;
-  const file=new File([blob],name,{type:'image/png'});
+const photoName=p=>`paperfield-${planeLabel(p).toLowerCase().replace(/[^a-z0-9]+/g,'-')}.png`;
+async function photoFile(p){const c=photo(p);if(!c)return null;const blob=await new Promise(r=>c.toBlob(r,'image/png'));return blob?new File([blob],photoName(p),{type:'image/png'}):null;}
+export async function sharePhoto(p){const file=await photoFile(p);if(!file)return 'none';const blob=file,name=file.name;
   if(navigator.canShare&&navigator.canShare({files:[file]}))try{await navigator.share({files:[file],title:'Paperfield',text:blurb(p)+' '+planeUrl(p.id)});return 'shared';}catch(e){if(aborted(e))return 'cancelled';}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),10e3);return 'saved';}
 

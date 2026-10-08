@@ -235,3 +235,16 @@ test('folding and the keel work from the keyboard; results are read out',async({
   await expect(page.locator('#announce')).toContainText('landed',{timeout:60e3});await expect(page.locator('#announce')).toContainText('points');
   expect(errs).toEqual([]);
 });
+
+test('Share sends the plane photo with the link where the device can share files',async({page})=>{
+  test.setTimeout(120e3);
+  await page.addInitScript(()=>{window.__shared=null;Navigator.prototype.canShare=function(d){return !!(d&&d.files);};
+    Navigator.prototype.share=async function(d){window.__shared={text:d.text,url:d.url,files:(d.files||[]).map(f=>({name:f.name,type:f.type,size:f.size}))};};});
+  const errs=watchConsole(page);await page.goto(LOCAL);await page.evaluate(()=>{localStorage.clear();localStorage.setItem('paperfield-fold-demo','1');});await page.reload();
+  await page.locator('#foldBtn').click();await page.locator('[data-stepdot="go"]').click();await page.locator('#release').click();
+  await expect(page.locator('#reveal')).toBeVisible({timeout:60e3});await page.locator('#rvShare').click();
+  await page.waitForFunction(()=>window.__shared);const s=await page.evaluate(()=>window.__shared);
+  expect(s.files).toHaveLength(1);expect(s.files[0].type).toBe('image/png');expect(s.files[0].size).toBeGreaterThan(5000);
+  expect(s.text).toMatch(/White plane flew .* m in Paperfield\. .*\?local&plane=/);
+  expect(errs).toEqual([]);
+});

@@ -20,8 +20,9 @@ There's nothing to type and nothing to draw: the only thing a player leaves behi
   3. **Wings**: drag either end of the keel line to set how deep the keel hangs at the nose and tail; the rest is wing.
   4. **Release**: your plane turns slowly above the sheet. Release it and the sheet folds up in front of you, then the countdown starts.
 - **The throw** plays as an event: countdown, flight, landing, then a points breakdown.
-- **Sharing**: every plane has a link (`?plane=<id>`) that opens the field on that plane where it landed, and a
-  Photo button that saves a captioned picture of it on the ground. Links carry only the plane's id, not its design.
+- **Sharing**: every plane has a link (`?plane=<id>`) that opens the field on that plane where it landed. Share sends
+  the link with a captioned photo of the plane on the ground (where the phone can share files); Photo saves just the
+  picture. Links carry only the plane's id, not its design. Link previews use one site image (`assets/og.png`).
 - **Throw limit**: your first 3 planes have no wait. After that it scales with how busy the field is: one a minute when it's quiet, stretching towards
   one an hour when it's packed (`src/net/cooldown.js`).
 - **Too good to be true**: every plane is re-flown with the real physics in a background worker (once per browser;
